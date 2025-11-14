@@ -33,3 +33,7 @@ gradio_cached_examples/
 
 # Logs
 *.log
+
+# Custom scripts (not to be committed)
+push-both.sh
+push-both.bat
