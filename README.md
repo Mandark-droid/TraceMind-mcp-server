@@ -4,7 +4,7 @@ emoji: 🤖
 colorFrom: blue
 colorTo: purple
 sdk: gradio
-sdk_version: 6.0.0.dev4
+sdk_version: 5.49.1
 app_port: 7860
 pinned: false
 license: agpl-3.0
