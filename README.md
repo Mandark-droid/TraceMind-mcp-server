@@ -7,7 +7,7 @@ sdk: gradio
 app_port: 7860
 pinned: false
 license: agpl-3.0
-short_description: AI-powered MCP server for agent evaluation analysis with Gemini 2.5 Pro
+short_description: MCP server for agent evaluation with Gemini 2.5 Pro
 tags:
   - building-mcp-track-enterprise
   - mcp
