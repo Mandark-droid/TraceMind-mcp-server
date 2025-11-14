@@ -51,6 +51,20 @@ TraceMind MCP Server is a Gradio-based MCP (Model Context Protocol) server that 
 
 All analysis is powered by **Google Gemini 2.5 Pro** for intelligent, context-aware insights.
 
+## 🔗 Quick Links
+
+### Current Deployment (Development)
+- **Gradio UI**: https://huggingface.co/spaces/kshitijthakkar/TraceMind-mcp-server
+- **MCP Endpoint**: `https://kshitijthakkar-tracemind-mcp-server.hf.space/gradio_api/mcp/`
+- **Auto-Config**: Add `kshitijthakkar-tracemind-mcp-server` at https://huggingface.co/settings/mcp
+
+### After Hackathon Submission (Production)
+- **Gradio UI**: https://huggingface.co/spaces/MCP-1st-Birthday/TraceMind-mcp-server
+- **MCP Endpoint**: `https://mcp-1st-birthday-tracemind-mcp-server.hf.space/gradio_api/mcp/`
+- **Auto-Config**: Add `mcp-1st-birthday-tracemind-mcp-server` at https://huggingface.co/settings/mcp
+
+> 💡 **Tip**: Use the Auto-Config link above for the easiest setup! It generates the correct config for your MCP client automatically.
+
 ## 📱 Social Media & Demo
 
 **📢 Announcement Post**: [Coming Soon - X/LinkedIn post]
@@ -254,23 +268,127 @@ Click "🔍 Analyze" and get AI-powered insights from live data!
 This Gradio app uses `mcp_server=True` in the launch configuration, which automatically:
 - Exposes all async functions with proper docstrings as MCP tools
 - Handles MCP protocol communication
-- Provides a standard MCP interface via SSE (Server-Sent Events)
+- Provides MCP interfaces via:
+  - **Streamable HTTP** (recommended) - Modern streaming protocol
+  - **SSE** (deprecated) - Server-Sent Events for legacy compatibility
 
 ### Connecting from MCP Clients
 
 Once deployed to HuggingFace Spaces, your MCP server will be available at:
 
-**MCP Endpoint (SSE)**:
+#### Current Space (Development)
+**🎯 MCP Endpoint (Streamable HTTP - Recommended)**:
 ```
-https://huggingface.co/spaces/kshitijthakkar/TraceMind-mcp-server/gradio_api/mcp/sse
-```
-
-**Schema Endpoint**:
-```
-https://huggingface.co/spaces/kshitijthakkar/TraceMind-mcp-server/gradio_api/mcp/schema
+https://kshitijthakkar-tracemind-mcp-server.hf.space/gradio_api/mcp/
 ```
 
-Configure your MCP client (Claude Desktop, Cursor, Cline, etc.) with the SSE endpoint.
+**⚠️ MCP Endpoint (SSE - Deprecated)**:
+```
+https://kshitijthakkar-tracemind-mcp-server.hf.space/gradio_api/mcp/sse
+```
+
+#### After Hackathon Submission
+**🎯 MCP Endpoint (Streamable HTTP - Recommended)**:
+```
+https://mcp-1st-birthday-tracemind-mcp-server.hf.space/gradio_api/mcp/
+```
+
+**⚠️ MCP Endpoint (SSE - Deprecated)**:
+```
+https://mcp-1st-birthday-tracemind-mcp-server.hf.space/gradio_api/mcp/sse
+```
+
+**Note**: Use the **Streamable HTTP endpoint** (recommended) for all new integrations. The SSE endpoint is deprecated and maintained for backward compatibility only. After submission to the hackathon org, use the `mcp-1st-birthday-tracemind-mcp-server` URLs.
+
+Configure your MCP client (Claude Desktop, Cursor, Cline, etc.) with the streamable HTTP endpoint.
+
+### ✨ Easiest Way to Connect
+
+**Recommended for all users** - HuggingFace provides an automatic configuration generator:
+
+1. **Visit**: https://huggingface.co/settings/mcp (while logged in)
+2. **Add Space**: Enter one of the following:
+   - **Development**: `kshitijthakkar-tracemind-mcp-server`
+   - **After Hackathon Submission**: `mcp-1st-birthday-tracemind-mcp-server`
+3. **Select Client**: Choose Claude Desktop, VSCode, Cursor, etc.
+4. **Copy Config**: Get the auto-generated configuration snippet
+5. **Paste & Restart**: Add to your client's config file and restart
+
+This automatically configures the correct endpoint URL and transport method for your chosen client!
+
+### 🔧 Manual Configuration (Advanced)
+
+If you prefer to manually configure your MCP client:
+
+**Claude Desktop (`claude_desktop_config.json`)**:
+```json
+{
+  "mcpServers": {
+    "tracemind": {
+      "url": "https://kshitijthakkar-tracemind-mcp-server.hf.space/gradio_api/mcp/",
+      "transport": "streamable-http"
+    }
+  }
+}
+```
+
+**After Hackathon Submission - Use this URL instead**:
+```json
+{
+  "mcpServers": {
+    "tracemind": {
+      "url": "https://mcp-1st-birthday-tracemind-mcp-server.hf.space/gradio_api/mcp/",
+      "transport": "streamable-http"
+    }
+  }
+}
+```
+
+**VSCode / Cursor (`settings.json` or `.cursor/mcp.json`)**:
+```json
+{
+  "mcp.servers": {
+    "tracemind": {
+      "url": "https://kshitijthakkar-tracemind-mcp-server.hf.space/gradio_api/mcp/",
+      "transport": "streamable-http"
+    }
+  }
+}
+```
+
+**After Hackathon Submission - Use this URL instead**:
+```json
+{
+  "mcp.servers": {
+    "tracemind": {
+      "url": "https://mcp-1st-birthday-tracemind-mcp-server.hf.space/gradio_api/mcp/",
+      "transport": "streamable-http"
+    }
+  }
+}
+```
+
+**Cline / Other MCP Clients**:
+- **Current URL**: `https://kshitijthakkar-tracemind-mcp-server.hf.space/gradio_api/mcp/`
+- **After Hackathon Submission**: `https://mcp-1st-birthday-tracemind-mcp-server.hf.space/gradio_api/mcp/`
+- **Transport**: `streamable-http` (or `http` depending on client)
+
+### ❓ Connection FAQ
+
+**Q: Which endpoint should I use?**
+A: Use the **Streamable HTTP endpoint** (`/gradio_api/mcp/`) for all new connections. It's the modern, recommended protocol.
+
+**Q: My client only supports SSE. What should I do?**
+A: Use the SSE endpoint (`/gradio_api/mcp/sse`) for now, but note that it's deprecated. Consider upgrading your client if possible.
+
+**Q: What's the difference between the two transports?**
+A: Streamable HTTP is the newer, more efficient protocol with better error handling and performance. SSE is the legacy protocol being phased out.
+
+**Q: How do I test if my connection works?**
+A: After configuring your client, restart it and look for "tracemind" in your available MCP tools/servers. You should see 5 tools, 3 resources, and 3 prompts.
+
+**Q: Can I use this MCP server without authentication?**
+A: The MCP endpoint is publicly accessible. However, the tools may require HuggingFace datasets to be public or accessible with your HF token (configured server-side).
 
 ### Available MCP Components
 
@@ -310,7 +428,8 @@ TraceMind-mcp-server/
 - **Gradio 6 with MCP support**: `gradio[mcp]` provides native MCP server capabilities
 - **Google Gemini 2.5 Pro**: Latest AI model for intelligent analysis
 - **HuggingFace Datasets**: Data source for evaluations
-- **SSE Transport**: Server-Sent Events for real-time MCP communication
+- **Streamable HTTP Transport**: Modern streaming protocol for MCP communication (recommended)
+- **SSE Transport**: Server-Sent Events for legacy MCP compatibility (deprecated)
 
 ## Deploy to HuggingFace Spaces
 
@@ -346,9 +465,32 @@ In Space settings → Tags, add:
 ### 5. Access Your MCP Server
 
 Your MCP server will be publicly available at:
+
+#### Current Space (Development)
+
+**Gradio UI**:
 ```
 https://huggingface.co/spaces/kshitijthakkar/TraceMind-mcp-server
 ```
+
+**MCP Endpoint (Streamable HTTP)**:
+```
+https://kshitijthakkar-tracemind-mcp-server.hf.space/gradio_api/mcp/
+```
+
+#### After Hackathon Submission
+
+**Gradio UI**:
+```
+https://huggingface.co/spaces/MCP-1st-Birthday/TraceMind-mcp-server
+```
+
+**MCP Endpoint (Streamable HTTP)**:
+```
+https://mcp-1st-birthday-tracemind-mcp-server.hf.space/gradio_api/mcp/
+```
+
+Use the **Easiest Way to Connect** section above to configure your MCP client automatically!
 
 ## Testing
 
@@ -397,7 +539,7 @@ Note: This requires actual trace data from an evaluation run. For testing purpos
 - **AI Analysis**: Google Gemini 2.5 Pro for all intelligent insights
 - **MCP Framework**: Gradio 6 with native MCP support
 - **Data Source**: HuggingFace Datasets
-- **Transport**: SSE (Server-Sent Events)
+- **Transport**: Streamable HTTP (recommended) and SSE (deprecated)
 
 ## Related Project: TraceMind UI (Track 2)
 

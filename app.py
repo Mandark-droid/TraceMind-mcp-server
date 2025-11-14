@@ -61,13 +61,21 @@ def create_gradio_ui():
 
         All powered by **Google Gemini 2.5 Pro**.
 
-        ## For Track 2 Integration
+        ## MCP Connection
 
-        **HuggingFace Space URL**: `https://huggingface.co/spaces/kshitijthakkar/TraceMind-mcp-server`
+        ### Current Space (Development)
+        **HuggingFace Space**: `https://huggingface.co/spaces/kshitijthakkar/TraceMind-mcp-server`
 
-        **MCP Endpoint**: `https://huggingface.co/spaces/kshitijthakkar/TraceMind-mcp-server/gradio_api/mcp/sse`
+        **MCP Endpoint (Streamable HTTP - Recommended)**: `https://kshitijthakkar-tracemind-mcp-server.hf.space/gradio_api/mcp/`
 
-        **Schema**: `https://huggingface.co/spaces/kshitijthakkar/TraceMind-mcp-server/gradio_api/mcp/schema`
+        **MCP Endpoint (SSE - Deprecated)**: `https://kshitijthakkar-tracemind-mcp-server.hf.space/gradio_api/mcp/sse`
+
+        ### After Hackathon Submission
+        **HuggingFace Space**: `https://huggingface.co/spaces/MCP-1st-Birthday/TraceMind-mcp-server`
+
+        **MCP Endpoint (Streamable HTTP - Recommended)**: `https://mcp-1st-birthday-tracemind-mcp-server.hf.space/gradio_api/mcp/`
+
+        **MCP Endpoint (SSE - Deprecated)**: `https://mcp-1st-birthday-tracemind-mcp-server.hf.space/gradio_api/mcp/sse`
         """)
 
         # Session state for API keys
@@ -932,7 +940,11 @@ def create_gradio_ui():
 
                 This Gradio app is MCP-enabled. When deployed to HuggingFace Spaces, it can be accessed via MCP clients.
 
-                **Space URL**: `https://huggingface.co/spaces/kshitijthakkar/TraceMind-mcp-server`
+                **Current Space**: `https://huggingface.co/spaces/kshitijthakkar/TraceMind-mcp-server`
+
+                **After Hackathon Submission**: `https://huggingface.co/spaces/MCP-1st-Birthday/TraceMind-mcp-server`
+
+                **MCP Endpoint (Streamable HTTP)**: Use `{space-name}.hf.space/gradio_api/mcp/` (see easiest connection method at https://huggingface.co/settings/mcp)
 
                 ### What's Exposed via MCP:
 
