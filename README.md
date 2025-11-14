@@ -33,12 +33,13 @@ tags:
 
 TraceMind MCP Server is a Gradio-based MCP (Model Context Protocol) server that provides a complete MCP implementation with:
 
-### 🛠️ **5 AI-Powered Tools**
+### 🛠️ **6 AI-Powered Tools**
 1. **📊 analyze_leaderboard**: Generate insights from evaluation leaderboard data
 2. **🐛 debug_trace**: Debug specific agent execution traces using OpenTelemetry data
 3. **💰 estimate_cost**: Predict evaluation costs before running
 4. **⚖️ compare_runs**: Compare two evaluation runs with AI-powered analysis
-5. **📦 get_dataset**: Load SMOLTRACE datasets (smoltrace-* prefix only) as JSON for flexible analysis
+5. **🔍 analyze_results**: Deep dive into test results with optimization recommendations
+6. **📦 get_dataset**: Load SMOLTRACE datasets (smoltrace-* prefix only) as JSON for flexible analysis
 
 ### 📦 **3 Data Resources**
 1. **leaderboard data**: Direct JSON access to evaluation results
@@ -386,19 +387,20 @@ A: Use the SSE endpoint (`/gradio_api/mcp/sse`) for now, but note that it's depr
 A: Streamable HTTP is the newer, more efficient protocol with better error handling and performance. SSE is the legacy protocol being phased out.
 
 **Q: How do I test if my connection works?**
-A: After configuring your client, restart it and look for "tracemind" in your available MCP tools/servers. You should see 5 tools, 3 resources, and 3 prompts.
+A: After configuring your client, restart it and look for "tracemind" in your available MCP tools/servers. You should see 6 tools, 3 resources, and 3 prompts.
 
 **Q: Can I use this MCP server without authentication?**
 A: The MCP endpoint is publicly accessible. However, the tools may require HuggingFace datasets to be public or accessible with your HF token (configured server-side).
 
 ### Available MCP Components
 
-**Tools** (5):
+**Tools** (6):
 1. **analyze_leaderboard**: AI-powered leaderboard analysis with Gemini 2.5 Pro
 2. **debug_trace**: Trace debugging with AI insights
 3. **estimate_cost**: Cost estimation with optimization recommendations
 4. **compare_runs**: Compare two evaluation runs with AI-powered analysis
-5. **get_dataset**: Load SMOLTRACE datasets (smoltrace-* only) as JSON
+5. **analyze_results**: Deep dive into test results with optimization recommendations
+6. **get_dataset**: Load SMOLTRACE datasets (smoltrace-* only) as JSON
 
 **Resources** (3):
 1. **leaderboard://{repo}**: Direct access to raw leaderboard data in JSON
@@ -555,7 +557,7 @@ TraceMind UI is a Gradio-based agent evaluation platform that uses these MCP too
 
 ### app.py
 Main Gradio application with:
-- Testing UI for all 5 tools
+- Testing UI for all 6 tools
 - MCP server enabled via `mcp_server=True`
 - API documentation
 
@@ -567,13 +569,14 @@ Google Gemini 2.5 Pro client that:
 - Uses `gemini-2.5-pro-latest` model (can switch to `gemini-2.5-flash-latest`)
 
 ### mcp_tools.py
-Complete MCP implementation with 11 components:
+Complete MCP implementation with 12 components:
 
-**Tools** (5 async functions):
+**Tools** (6 async functions):
 - `analyze_leaderboard()`: AI-powered leaderboard analysis
 - `debug_trace()`: AI-powered trace debugging
 - `estimate_cost()`: AI-powered cost estimation
 - `compare_runs()`: AI-powered run comparison
+- `analyze_results()`: AI-powered results analysis with optimization recommendations
 - `get_dataset()`: Load SMOLTRACE datasets as JSON
 
 **Resources** (3 decorated functions with `@gr.mcp.resource()`):

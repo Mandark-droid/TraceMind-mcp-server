@@ -577,6 +577,154 @@ Provide eco-conscious recommendations for sustainable AI deployment.
 
 
 @gr.mcp.tool()
+async def analyze_results(
+    results_repo: str,
+    analysis_focus: str = "comprehensive",
+    max_rows: int = 100,
+    hf_token: Optional[str] = None,
+    gemini_api_key: Optional[str] = None
+) -> str:
+    """
+    Analyze detailed test results and provide optimization recommendations.
+
+    USE THIS TOOL when you need to:
+    - Understand why tests are failing and get recommendations
+    - Identify performance bottlenecks in specific test cases
+    - Find cost optimization opportunities
+    - Get insights about tool usage patterns
+    - Analyze which types of tasks work well vs poorly
+
+    This tool analyzes individual test case results (not aggregate leaderboard data)
+    and uses Google Gemini 2.5 Pro to provide actionable optimization recommendations.
+
+    Args:
+        results_repo (str): HuggingFace dataset repository containing results (e.g., "username/smoltrace-results-gpt4-20251114")
+        analysis_focus (str): Focus area. Options: "failures", "performance", "cost", "comprehensive". Default: "comprehensive"
+        max_rows (int): Maximum test cases to analyze. Default: 100. Range: 10-500
+        hf_token (Optional[str]): HuggingFace token for dataset access. If None, uses HF_TOKEN environment variable.
+        gemini_api_key (Optional[str]): Google Gemini API key. If None, uses GEMINI_API_KEY environment variable.
+
+    Returns:
+        str: Markdown-formatted analysis with failure patterns, performance insights, cost analysis, and optimization recommendations
+    """
+    try:
+        # Initialize Gemini client
+        gemini_client = GeminiClient(api_key=gemini_api_key) if gemini_api_key else GeminiClient()
+
+        # Load results dataset
+        print(f"Loading results from {results_repo}...")
+        token = hf_token if hf_token else os.getenv("HF_TOKEN")
+        ds = load_dataset(results_repo, split="train", token=token)
+        df = pd.DataFrame(ds)
+
+        if df.empty:
+            return "❌ **Error**: Results dataset is empty"
+
+        # Limit rows
+        max_rows = max(10, min(500, max_rows))
+        df_sample = df.head(max_rows)
+
+        # Calculate statistics
+        total_tests = len(df_sample)
+        successful = df_sample[df_sample['success'] == True]
+        failed = df_sample[df_sample['success'] == False]
+
+        success_rate = (len(successful) / total_tests * 100) if total_tests > 0 else 0
+
+        # Analyze by category/difficulty
+        category_stats = {}
+        if 'category' in df_sample.columns:
+            category_stats = df_sample.groupby('category').agg({
+                'success': ['count', 'sum', 'mean'],
+                'execution_time_ms': 'mean',
+                'cost_usd': 'sum'
+            }).to_dict()
+
+        difficulty_stats = {}
+        if 'difficulty' in df_sample.columns:
+            difficulty_stats = df_sample.groupby('difficulty').agg({
+                'success': ['count', 'sum', 'mean'],
+                'execution_time_ms': 'mean'
+            }).to_dict()
+
+        # Find slowest tests
+        slowest_tests = df_sample.nlargest(5, 'execution_time_ms')[
+            ['task_id', 'prompt', 'execution_time_ms', 'success', 'cost_usd']
+        ].to_dict('records')
+
+        # Find most expensive tests
+        if 'cost_usd' in df_sample.columns:
+            most_expensive = df_sample.nlargest(5, 'cost_usd')[
+                ['task_id', 'prompt', 'cost_usd', 'total_tokens', 'success']
+            ].to_dict('records')
+        else:
+            most_expensive = []
+
+        # Analyze failures
+        failure_analysis = []
+        if len(failed) > 0:
+            # Get sample of failures
+            failure_sample = failed.head(10)[
+                ['task_id', 'prompt', 'error', 'error_type', 'tool_called', 'expected_tool']
+            ].to_dict('records')
+
+            # Count error types
+            if 'error_type' in failed.columns:
+                error_type_counts = failed['error_type'].value_counts().to_dict()
+            else:
+                error_type_counts = {}
+
+            failure_analysis = {
+                "total_failures": len(failed),
+                "failure_rate": (len(failed) / total_tests * 100),
+                "error_type_counts": error_type_counts,
+                "sample_failures": failure_sample
+            }
+
+        # Prepare data for Gemini analysis
+        analysis_data = {
+            "results_repo": results_repo,
+            "total_tests_analyzed": total_tests,
+            "overall_stats": {
+                "success_rate": round(success_rate, 2),
+                "successful_tests": len(successful),
+                "failed_tests": len(failed),
+                "avg_execution_time_ms": float(df_sample['execution_time_ms'].mean()),
+                "total_cost_usd": float(df_sample['cost_usd'].sum()) if 'cost_usd' in df_sample.columns else 0,
+                "avg_tokens_per_test": float(df_sample['total_tokens'].mean()) if 'total_tokens' in df_sample.columns else 0
+            },
+            "category_performance": category_stats,
+            "difficulty_performance": difficulty_stats,
+            "slowest_tests": slowest_tests,
+            "most_expensive_tests": most_expensive,
+            "failure_analysis": failure_analysis,
+            "analysis_focus": analysis_focus
+        }
+
+        # Create focus-specific prompt
+        focus_prompts = {
+            "failures": "Focus specifically on failure patterns. Analyze why tests are failing, identify common error types, and provide actionable recommendations to improve success rate.",
+            "performance": "Focus on performance optimization. Analyze execution times, identify bottlenecks, and recommend ways to speed up test execution.",
+            "cost": "Focus on cost optimization. Analyze token usage and costs, identify expensive tests, and recommend ways to reduce evaluation costs.",
+            "comprehensive": "Provide comprehensive analysis covering failures, performance, cost, and overall optimization opportunities."
+        }
+
+        specific_question = focus_prompts.get(analysis_focus, focus_prompts["comprehensive"])
+
+        # Get AI analysis
+        result = await gemini_client.analyze_with_context(
+            data=analysis_data,
+            analysis_type="results",
+            specific_question=specific_question
+        )
+
+        return result
+
+    except Exception as e:
+        return f"❌ **Error analyzing results**: {str(e)}\n\nPlease check:\n- Repository name is correct (should be smoltrace-results-*)\n- You have access to the dataset\n- HF_TOKEN is set correctly"
+
+
+@gr.mcp.tool()
 async def get_dataset(
     dataset_repo: str,
     max_rows: int = 50,

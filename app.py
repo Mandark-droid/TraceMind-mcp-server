@@ -21,6 +21,7 @@ from mcp_tools import (
     debug_trace,
     estimate_cost,
     compare_runs,
+    analyze_results,
     get_dataset
 )
 
@@ -40,13 +41,14 @@ def create_gradio_ui():
 
         **AI-Powered Analysis for Agent Evaluation Data**
 
-        This server provides **5 MCP Tools + 3 MCP Resources + 3 MCP Prompts**:
+        This server provides **6 MCP Tools + 3 MCP Resources + 3 MCP Prompts**:
 
         ### MCP Tools (AI-Powered)
         - 📊 **Analyze Leaderboard**: Get insights from evaluation results
         - 🐛 **Debug Trace**: Understand what happened in a specific test
         - 💰 **Estimate Cost**: Predict evaluation costs before running
         - ⚖️ **Compare Runs**: Compare two evaluation runs with AI-powered analysis
+        - 🔍 **Analyze Results**: Deep dive into test results with optimization recommendations
         - 📦 **Get Dataset**: Load any HuggingFace dataset as JSON for flexible analysis
 
         ### MCP Resources (Data Access)
@@ -520,7 +522,80 @@ def create_gradio_ui():
                     outputs=[compare_output]
                 )
 
-            # Tab 5: Get Dataset
+            # Tab 5: Analyze Results
+            with gr.Tab("🔍 Analyze Results"):
+                gr.Markdown("""
+                ## Analyze Test Results & Get Optimization Recommendations
+
+                Deep dive into individual test case results to identify failure patterns,
+                performance bottlenecks, and cost optimization opportunities.
+                """)
+
+                with gr.Row():
+                    results_repo_input = gr.Textbox(
+                        label="Results Repository",
+                        placeholder="e.g., username/smoltrace-results-gpt4-20251114",
+                        info="HuggingFace dataset containing results data"
+                    )
+                    results_focus = gr.Dropdown(
+                        choices=["comprehensive", "failures", "performance", "cost"],
+                        value="comprehensive",
+                        label="Analysis Focus",
+                        info="What aspect to focus the analysis on"
+                    )
+
+                with gr.Row():
+                    results_max_rows = gr.Slider(
+                        minimum=10,
+                        maximum=500,
+                        value=100,
+                        step=10,
+                        label="Max Test Cases to Analyze",
+                        info="Limit number of test cases for analysis"
+                    )
+
+                results_button = gr.Button("🔍 Analyze Results", variant="primary")
+                results_output = gr.Markdown()
+
+                async def run_analyze_results(repo, focus, max_rows, gemini_key, hf_token):
+                    """
+                    Analyze detailed test results and provide optimization recommendations.
+
+                    Args:
+                        repo (str): HuggingFace dataset repository containing results
+                        focus (str): Analysis focus area
+                        max_rows (int): Maximum test cases to analyze
+                        gemini_key (str): Gemini API key from session state
+                        hf_token (str): HuggingFace token from session state
+
+                    Returns:
+                        str: Markdown-formatted analysis with recommendations
+                    """
+                    try:
+                        if not repo:
+                            return "❌ **Error**: Please provide a results repository"
+
+                        # Use user-provided key or fall back to environment variable
+                        api_key = gemini_key if gemini_key and gemini_key.strip() else None
+
+                        result = await analyze_results(
+                            results_repo=repo,
+                            analysis_focus=focus,
+                            max_rows=int(max_rows),
+                            hf_token=hf_token if hf_token and hf_token.strip() else None,
+                            gemini_api_key=api_key
+                        )
+                        return result
+                    except Exception as e:
+                        return f"❌ **Error**: {str(e)}"
+
+                results_button.click(
+                    fn=run_analyze_results,
+                    inputs=[results_repo_input, results_focus, results_max_rows, gemini_key_state, hf_token_state],
+                    outputs=[results_output]
+                )
+
+            # Tab 6: Get Dataset
             with gr.Tab("📦 Get Dataset"):
                 gr.Markdown("""
                 ## Load SMOLTRACE Datasets as JSON
