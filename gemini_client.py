@@ -31,12 +31,16 @@ class GeminiClient:
         self.model = genai.GenerativeModel(model_name)
 
         # Generation config for consistent outputs
+        # Reduced max_output_tokens for faster responses on HF Spaces
         self.generation_config = {
             "temperature": 0.7,
             "top_p": 0.95,
             "top_k": 40,
-            "max_output_tokens": 8192,
+            "max_output_tokens": 4096,  # Reduced from 8192 for faster responses
         }
+
+        # Request timeout (30 seconds for HF Spaces compatibility)
+        self.request_timeout = 30
 
     async def analyze_with_context(
         self,
@@ -116,17 +120,25 @@ Format your response in clear markdown with cost breakdowns and optimization tip
 
         user_prompt += "Provide your analysis:"
 
-        # Generate response
+        # Generate response with timeout handling
         try:
-            response = await self.model.generate_content_async(
-                user_prompt,
-                generation_config=self.generation_config
+            import asyncio
+
+            # Add timeout to prevent hanging on HF Spaces
+            response = await asyncio.wait_for(
+                self.model.generate_content_async(
+                    user_prompt,
+                    generation_config=self.generation_config
+                ),
+                timeout=self.request_timeout
             )
 
             return response.text
 
+        except asyncio.TimeoutError:
+            return "⏱️ **Analysis timed out**. The request took too long. Try analyzing a smaller dataset or simplifying the query."
         except Exception as e:
-            return f"Error generating analysis: {str(e)}"
+            return f"❌ **Error generating analysis**: {str(e)}"
 
     async def generate_summary(
         self,
