@@ -993,6 +993,6 @@ if __name__ == "__main__":
     demo.launch(
         server_name="0.0.0.0",
         server_port=7860,
-        share=True,  # Creates temporary HTTPS URL (e.g., https://abc123.gradio.live)
+        #share=True,  # Creates temporary HTTPS URL (e.g., https://abc123.gradio.live)
         mcp_server=True  # Enable MCP server functionality
     )
