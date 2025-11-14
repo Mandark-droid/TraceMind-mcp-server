@@ -35,7 +35,8 @@ except ValueError:
 def create_gradio_ui():
     """Create Gradio UI for testing MCP tools"""
 
-    with gr.Blocks(title="TraceMind MCP Server", theme=gr.themes.Soft()) as demo:
+    # Note: Gradio 6 has different theme API
+    with gr.Blocks(title="TraceMind MCP Server") as demo:
         gr.Markdown("""
         # 🤖 TraceMind MCP Server
 
