@@ -3,8 +3,7 @@ title: TraceMind MCP Server
 emoji: 🤖
 colorFrom: blue
 colorTo: purple
-sdk: gradio
-sdk_version: 5.49.1
+sdk: docker
 app_port: 7860
 pinned: false
 license: agpl-3.0
