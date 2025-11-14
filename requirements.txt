@@ -1,0 +1,11 @@
+# Core dependencies
+gradio[mcp]>=6.0.0.dev1
+google-generativeai>=0.8.0
+datasets>=2.14.0
+pandas>=2.0.0
+
+# HuggingFace
+huggingface-hub>=0.20.0
+
+# Utilities
+python-dotenv>=1.0.0
