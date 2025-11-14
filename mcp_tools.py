@@ -31,11 +31,20 @@ async def analyze_leaderboard(
     gemini_api_key: Optional[str] = None
 ) -> str:
     """
-    Analyze evaluation leaderboard and generate AI-powered insights.
+    Answer questions about the leaderboard with AI-powered analysis and insights.
 
-    This tool loads agent evaluation data from HuggingFace datasets and uses
-    Google Gemini 2.5 Pro to provide intelligent analysis of top performers,
-    trends, cost/performance trade-offs, and actionable recommendations.
+    USE THIS TOOL when you need to:
+    - Answer questions like "Which model is leading?", "What's the best model for cost?"
+    - Get intelligent insights about top performers and trends
+    - Compare models and understand trade-offs
+    - Get recommendations based on leaderboard data
+
+    DO NOT use the leaderboard:// resource for questions - use this tool instead!
+    The resource only returns raw JSON data without any analysis.
+
+    This tool uses Google Gemini 2.5 Pro to provide intelligent analysis of
+    agent evaluation results, including top performers, trends, cost/performance
+    trade-offs, and actionable recommendations.
 
     Args:
         leaderboard_repo (str): HuggingFace dataset repository containing leaderboard data. Default: "kshitijthakkar/smoltrace-leaderboard"
@@ -129,11 +138,20 @@ async def debug_trace(
     gemini_api_key: Optional[str] = None
 ) -> str:
     """
-    Debug a specific agent execution trace using OpenTelemetry data.
+    Answer questions about agent traces with AI-powered debugging and analysis.
 
-    This tool analyzes OpenTelemetry trace data from agent executions and uses
-    Google Gemini 2.5 Pro to answer specific questions about the execution flow,
-    identify bottlenecks, and explain agent behavior.
+    USE THIS TOOL when you need to:
+    - Answer questions like "Why did this fail?", "What took the most time?", "Why was X called?"
+    - Debug agent execution traces and understand what happened
+    - Identify bottlenecks and performance issues
+    - Get explanations about agent behavior
+
+    DO NOT use the trace:// resource for questions - use this tool instead!
+    The resource only returns raw OTEL JSON data without any analysis.
+
+    This tool uses Google Gemini 2.5 Pro to analyze OpenTelemetry trace data and
+    provide intelligent debugging insights, step-by-step breakdowns, and answers
+    to specific questions about execution flow.
 
     Args:
         trace_id (str): Unique identifier for the trace to analyze (e.g., "trace_abc123")
@@ -226,11 +244,20 @@ async def estimate_cost(
     gemini_api_key: Optional[str] = None
 ) -> str:
     """
-    Estimate the cost, duration, and CO2 emissions of running agent evaluations.
+    Answer questions about evaluation costs with AI-powered estimates and recommendations.
 
-    This tool predicts costs before running evaluations by calculating LLM API costs,
-    HuggingFace Jobs compute costs, and CO2 emissions. Uses Google Gemini 2.5 Pro
-    to provide cost breakdown and optimization recommendations.
+    USE THIS TOOL when you need to:
+    - Answer questions like "How much will this cost?", "What's the cheapest option?"
+    - Get cost predictions for running evaluations
+    - Compare costs between different models or hardware
+    - Get optimization recommendations to reduce costs
+
+    DO NOT use the cost:// resource for estimates - use this tool instead!
+    The resource only returns raw pricing tables without calculations.
+
+    This tool uses Google Gemini 2.5 Pro to calculate LLM API costs, HuggingFace
+    Jobs compute costs, CO2 emissions, and provide intelligent cost breakdowns with
+    optimization recommendations.
 
     Args:
         model (str): Model identifier in litellm format (e.g., "openai/gpt-4", "meta-llama/Llama-3.1-8B")
@@ -637,17 +664,24 @@ async def get_dataset(
 @gr.mcp.resource("leaderboard://{repo}")
 def get_leaderboard_data(repo: str = "kshitijthakkar/smoltrace-leaderboard", hf_token: Optional[str] = None) -> str:
     """
-    Get raw leaderboard data from HuggingFace dataset.
+    [RAW DATA ONLY] Get raw leaderboard data in JSON format - NO analysis or insights.
 
-    This resource provides direct access to leaderboard data in JSON format,
-    allowing MCP clients to retrieve and process evaluation results.
+    ⚠️ DO NOT USE THIS for questions like "Which model is leading?" or "What's the best model?"
+    Instead, use the analyze_leaderboard TOOL which provides AI-powered insights.
+
+    This resource is ONLY for:
+    - Getting raw JSON data when you need to process it yourself
+    - Low-level data access for custom analysis
+    - Direct dataset retrieval without AI interpretation
+
+    For questions, insights, recommendations, or analysis → use analyze_leaderboard tool instead!
 
     Args:
         repo (str): HuggingFace dataset repository name. Default: "kshitijthakkar/smoltrace-leaderboard"
         hf_token (Optional[str]): HuggingFace token for dataset access. If None, uses HF_TOKEN environment variable.
 
     Returns:
-        str: JSON string containing leaderboard data with all evaluation runs
+        str: Raw JSON string containing all evaluation runs without any analysis
     """
     try:
         # Use user-provided token or fall back to environment variable
@@ -673,10 +707,17 @@ def get_leaderboard_data(repo: str = "kshitijthakkar/smoltrace-leaderboard", hf_
 @gr.mcp.resource("trace://{trace_id}/{repo}")
 def get_trace_data(trace_id: str, repo: str, hf_token: Optional[str] = None) -> str:
     """
-    Get raw trace data for a specific trace ID from HuggingFace dataset.
+    [RAW DATA ONLY] Get raw OpenTelemetry trace data in JSON format - NO analysis.
 
-    This resource provides direct access to OpenTelemetry trace data,
-    allowing MCP clients to retrieve detailed execution information.
+    ⚠️ DO NOT USE THIS for questions like "Why did this fail?" or "What took the most time?"
+    Instead, use the debug_trace TOOL which provides AI-powered debugging and insights.
+
+    This resource is ONLY for:
+    - Getting raw OTEL span data when you need to process it yourself
+    - Low-level trace access for custom analysis
+    - Direct dataset retrieval without AI interpretation
+
+    For debugging, questions, or analysis → use debug_trace tool instead!
 
     Args:
         trace_id (str): Unique identifier for the trace (e.g., "trace_abc123")
@@ -684,7 +725,7 @@ def get_trace_data(trace_id: str, repo: str, hf_token: Optional[str] = None) -> 
         hf_token (Optional[str]): HuggingFace token for dataset access. If None, uses HF_TOKEN environment variable.
 
     Returns:
-        str: JSON string containing trace data with all spans and attributes
+        str: Raw JSON string containing OpenTelemetry spans without any analysis
     """
     try:
         # Use user-provided token or fall back to environment variable
@@ -727,16 +768,23 @@ def get_trace_data(trace_id: str, repo: str, hf_token: Optional[str] = None) -> 
 @gr.mcp.resource("cost://model/{model_name}")
 def get_cost_data(model_name: str) -> str:
     """
-    Get cost information for a specific model.
+    [RAW DATA ONLY] Get raw pricing data for a model in JSON format - NO estimates or analysis.
 
-    This resource provides pricing data for LLM models and hardware configurations,
-    helping users understand evaluation costs.
+    ⚠️ DO NOT USE THIS for questions like "How much will this cost?" or "What's the best value?"
+    Instead, use the estimate_cost TOOL which provides AI-powered cost estimates and recommendations.
+
+    This resource is ONLY for:
+    - Getting raw pricing tables when you need to process them yourself
+    - Looking up base rates for models and hardware
+    - Direct price data retrieval without calculations
+
+    For cost estimates, predictions, or recommendations → use estimate_cost tool instead!
 
     Args:
         model_name (str): Model identifier (e.g., "openai/gpt-4", "meta-llama/Llama-3.1-8B")
 
     Returns:
-        str: JSON string containing cost data for the model
+        str: Raw JSON string with pricing rates without any cost estimation
     """
     # Cost database
     llm_costs = {
