@@ -4,6 +4,7 @@ emoji: 🤖
 colorFrom: blue
 colorTo: purple
 sdk: gradio
+sdk_version: 5.49.1
 app_port: 7860
 pinned: false
 license: agpl-3.0
@@ -14,7 +15,7 @@ tags:
   - gradio
   - gemini
   - agent-evaluation
-  - leaderboard 
+  - leaderboard
 ---
 
 # TraceMind MCP Server
