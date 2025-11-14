@@ -267,21 +267,16 @@ def create_gradio_ui():
                         str: Markdown-formatted analysis with top performers, trends, and recommendations
                     """
                     try:
-                        # Create GeminiClient with user-provided key or fallback to default
-                        if gemini_key and gemini_key.strip():
-                            client = GeminiClient(api_key=gemini_key)
-                        elif default_gemini_client:
-                            client = default_gemini_client
-                        else:
-                            return "❌ **Error**: No Gemini API key configured. Please set it in the Settings tab."
+                        # Use user-provided key or fall back to environment variable
+                        api_key = gemini_key if gemini_key and gemini_key.strip() else None
 
                         result = await analyze_leaderboard(
-                            gemini_client=client,
                             leaderboard_repo=repo,
                             metric_focus=metric,
                             time_range=time_range,
                             top_n=int(top_n),
-                            hf_token=hf_token if hf_token and hf_token.strip() else None
+                            hf_token=hf_token if hf_token and hf_token.strip() else None,
+                            gemini_api_key=api_key
                         )
                         return result
                     except Exception as e:
@@ -341,20 +336,15 @@ def create_gradio_ui():
                         if not trace_id_val or not traces_repo_val:
                             return "❌ **Error**: Please provide both Trace ID and Traces Repository"
 
-                        # Create GeminiClient with user-provided key or fallback to default
-                        if gemini_key and gemini_key.strip():
-                            client = GeminiClient(api_key=gemini_key)
-                        elif default_gemini_client:
-                            client = default_gemini_client
-                        else:
-                            return "❌ **Error**: No Gemini API key configured. Please set it in the Settings tab."
+                        # Use user-provided key or fall back to environment variable
+                        api_key = gemini_key if gemini_key and gemini_key.strip() else None
 
                         result = await debug_trace(
-                            gemini_client=client,
                             trace_id=trace_id_val,
                             traces_repo=traces_repo_val,
                             question=question_val or "Analyze this trace",
-                            hf_token=hf_token if hf_token and hf_token.strip() else None
+                            hf_token=hf_token if hf_token and hf_token.strip() else None,
+                            gemini_api_key=api_key
                         )
                         return result
                     except Exception as e:
@@ -422,20 +412,15 @@ def create_gradio_ui():
                         if not model:
                             return "❌ **Error**: Please provide a model name"
 
-                        # Create GeminiClient with user-provided key or fallback to default
-                        if gemini_key and gemini_key.strip():
-                            client = GeminiClient(api_key=gemini_key)
-                        elif default_gemini_client:
-                            client = default_gemini_client
-                        else:
-                            return "❌ **Error**: No Gemini API key configured. Please set it in the Settings tab."
+                        # Use user-provided key or fall back to environment variable
+                        api_key = gemini_key if gemini_key and gemini_key.strip() else None
 
                         result = await estimate_cost(
-                            gemini_client=client,
                             model=model,
                             agent_type=agent_type,
                             num_tests=int(num_tests),
-                            hardware=hardware
+                            hardware=hardware,
+                            gemini_api_key=api_key
                         )
                         return result
                     except Exception as e:
@@ -506,21 +491,16 @@ def create_gradio_ui():
                         str: Markdown-formatted comparative analysis with winners, trade-offs, and recommendations
                     """
                     try:
-                        # Create GeminiClient with user-provided key or fallback to default
-                        if gemini_key and gemini_key.strip():
-                            client = GeminiClient(api_key=gemini_key)
-                        elif default_gemini_client:
-                            client = default_gemini_client
-                        else:
-                            return "❌ **Error**: No Gemini API key configured. Please set it in the Settings tab."
+                        # Use user-provided key or fall back to environment variable
+                        api_key = gemini_key if gemini_key and gemini_key.strip() else None
 
                         result = await compare_runs(
-                            gemini_client=client,
                             run_id_1=run_id_1,
                             run_id_2=run_id_2,
                             leaderboard_repo=repo,
                             comparison_focus=focus,
-                            hf_token=hf_token if hf_token and hf_token.strip() else None
+                            hf_token=hf_token if hf_token and hf_token.strip() else None,
+                            gemini_api_key=api_key
                         )
                         return result
                     except Exception as e:

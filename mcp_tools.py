@@ -23,12 +23,12 @@ from gemini_client import GeminiClient
 
 
 async def analyze_leaderboard(
-    gemini_client: GeminiClient,
     leaderboard_repo: str = "kshitijthakkar/smoltrace-leaderboard",
     metric_focus: str = "overall",
     time_range: str = "last_week",
     top_n: int = 5,
-    hf_token: Optional[str] = None
+    hf_token: Optional[str] = None,
+    gemini_api_key: Optional[str] = None
 ) -> str:
     """
     Analyze evaluation leaderboard and generate AI-powered insights.
@@ -38,17 +38,19 @@ async def analyze_leaderboard(
     trends, cost/performance trade-offs, and actionable recommendations.
 
     Args:
-        gemini_client (GeminiClient): Initialized Gemini client for AI analysis
         leaderboard_repo (str): HuggingFace dataset repository containing leaderboard data. Default: "kshitijthakkar/smoltrace-leaderboard"
         metric_focus (str): Primary metric to focus analysis on. Options: "overall", "accuracy", "cost", "latency", "co2". Default: "overall"
         time_range (str): Time range for analysis. Options: "last_week", "last_month", "all_time". Default: "last_week"
         top_n (int): Number of top models to highlight in analysis. Must be between 3 and 10. Default: 5
         hf_token (Optional[str]): HuggingFace token for dataset access. If None, uses HF_TOKEN environment variable.
+        gemini_api_key (Optional[str]): Google Gemini API key. If None, uses GEMINI_API_KEY environment variable.
 
     Returns:
         str: Markdown-formatted analysis with top performers, insights, trade-offs, and recommendations
     """
     try:
+        # Initialize Gemini client with provided key or from environment
+        gemini_client = GeminiClient(api_key=gemini_api_key) if gemini_api_key else GeminiClient()
         # Load leaderboard data from HuggingFace
         print(f"Loading leaderboard from {leaderboard_repo}...")
 
@@ -120,11 +122,11 @@ async def analyze_leaderboard(
 
 
 async def debug_trace(
-    gemini_client: GeminiClient,
     trace_id: str,
     traces_repo: str,
     question: str = "Analyze this trace and explain what happened",
-    hf_token: Optional[str] = None
+    hf_token: Optional[str] = None,
+    gemini_api_key: Optional[str] = None
 ) -> str:
     """
     Debug a specific agent execution trace using OpenTelemetry data.
@@ -134,16 +136,18 @@ async def debug_trace(
     identify bottlenecks, and explain agent behavior.
 
     Args:
-        gemini_client (GeminiClient): Initialized Gemini client for AI analysis
         trace_id (str): Unique identifier for the trace to analyze (e.g., "trace_abc123")
         traces_repo (str): HuggingFace dataset repository containing trace data (e.g., "username/agent-traces-model-timestamp")
         question (str): Specific question about the trace. Default: "Analyze this trace and explain what happened"
         hf_token (Optional[str]): HuggingFace token for dataset access. If None, uses HF_TOKEN environment variable.
+        gemini_api_key (Optional[str]): Google Gemini API key. If None, uses GEMINI_API_KEY environment variable.
 
     Returns:
         str: Markdown-formatted debug analysis with step-by-step breakdown, timing information, and answer to the question
     """
     try:
+        # Initialize Gemini client with provided key or from environment
+        gemini_client = GeminiClient(api_key=gemini_api_key) if gemini_api_key else GeminiClient()
         # Load traces dataset
         print(f"Loading traces from {traces_repo}...")
 
@@ -215,11 +219,11 @@ async def debug_trace(
 
 
 async def estimate_cost(
-    gemini_client: GeminiClient,
     model: str,
     agent_type: str,
     num_tests: int = 100,
-    hardware: str = "auto"
+    hardware: str = "auto",
+    gemini_api_key: Optional[str] = None
 ) -> str:
     """
     Estimate the cost, duration, and CO2 emissions of running agent evaluations.
@@ -229,16 +233,18 @@ async def estimate_cost(
     to provide cost breakdown and optimization recommendations.
 
     Args:
-        gemini_client (GeminiClient): Initialized Gemini client for AI analysis
         model (str): Model identifier in litellm format (e.g., "openai/gpt-4", "meta-llama/Llama-3.1-8B")
         agent_type (str): Type of agent capabilities to test. Options: "tool", "code", "both"
         num_tests (int): Number of test cases to run. Must be between 10 and 1000. Default: 100
         hardware (str): Hardware type for HuggingFace Jobs. Options: "auto", "cpu", "gpu_a10", "gpu_h200". Default: "auto"
+        gemini_api_key (Optional[str]): Google Gemini API key. If None, uses GEMINI_API_KEY environment variable.
 
     Returns:
         str: Markdown-formatted cost estimate with breakdown of LLM costs, HF Jobs costs, duration, CO2 emissions, and optimization tips
     """
     try:
+        # Initialize Gemini client with provided key or from environment
+        gemini_client = GeminiClient(api_key=gemini_api_key) if gemini_api_key else GeminiClient()
         # Determine if API or local model
         is_api_model = any(provider in model.lower() for provider in ["openai", "anthropic", "google", "cohere"])
 
@@ -338,12 +344,12 @@ async def estimate_cost(
 
 
 async def compare_runs(
-    gemini_client: GeminiClient,
     run_id_1: str,
     run_id_2: str,
     leaderboard_repo: str = "kshitijthakkar/smoltrace-leaderboard",
     comparison_focus: str = "comprehensive",
-    hf_token: Optional[str] = None
+    hf_token: Optional[str] = None,
+    gemini_api_key: Optional[str] = None
 ) -> str:
     """
     Compare two evaluation runs and generate AI-powered comparative analysis.
@@ -353,17 +359,19 @@ async def compare_runs(
     success rate, cost efficiency, speed, environmental impact, and use case recommendations.
 
     Args:
-        gemini_client (GeminiClient): Initialized Gemini client for AI analysis
         run_id_1 (str): First run ID to compare
         run_id_2 (str): Second run ID to compare
         leaderboard_repo (str): HuggingFace dataset repository containing leaderboard data. Default: "kshitijthakkar/smoltrace-leaderboard"
         comparison_focus (str): Focus area for comparison. Options: "comprehensive", "cost", "performance", "eco_friendly". Default: "comprehensive"
         hf_token (Optional[str]): HuggingFace token for dataset access. If None, uses HF_TOKEN environment variable.
+        gemini_api_key (Optional[str]): Google Gemini API key. If None, uses GEMINI_API_KEY environment variable.
 
     Returns:
         str: Markdown-formatted comparative analysis with winner for each category, trade-offs, and use case recommendations
     """
     try:
+        # Initialize Gemini client with provided key or from environment
+        gemini_client = GeminiClient(api_key=gemini_api_key) if gemini_api_key else GeminiClient()
         # Load leaderboard data
         # Use user-provided token or fall back to environment variable
         token = hf_token if hf_token else os.getenv("HF_TOKEN")
