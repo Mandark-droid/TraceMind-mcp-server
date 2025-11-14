@@ -22,6 +22,7 @@ import gradio as gr
 from gemini_client import GeminiClient
 
 
+@gr.mcp.tool()
 async def analyze_leaderboard(
     leaderboard_repo: str = "kshitijthakkar/smoltrace-leaderboard",
     metric_focus: str = "overall",
@@ -130,6 +131,7 @@ async def analyze_leaderboard(
         return f"❌ **Error analyzing leaderboard**: {str(e)}\n\nPlease check:\n- Repository name is correct\n- You have access to the dataset\n- HF_TOKEN is set correctly"
 
 
+@gr.mcp.tool()
 async def debug_trace(
     trace_id: str,
     traces_repo: str,
@@ -236,6 +238,7 @@ async def debug_trace(
         return f"❌ **Error debugging trace**: {str(e)}\n\nPlease check:\n- Trace ID is correct\n- Repository name is correct\n- You have access to the dataset"
 
 
+@gr.mcp.tool()
 async def estimate_cost(
     model: str,
     agent_type: str,
@@ -370,6 +373,7 @@ async def estimate_cost(
         return f"❌ **Error estimating cost**: {str(e)}"
 
 
+@gr.mcp.tool()
 async def compare_runs(
     run_id_1: str,
     run_id_2: str,
@@ -572,6 +576,7 @@ Provide eco-conscious recommendations for sustainable AI deployment.
         return f"❌ **Error comparing runs**: {str(e)}"
 
 
+@gr.mcp.tool()
 async def get_dataset(
     dataset_repo: str,
     max_rows: int = 50,
