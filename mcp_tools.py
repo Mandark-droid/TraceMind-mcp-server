@@ -760,7 +760,7 @@ async def get_dataset(
                 "dataset_repo": dataset_repo,
                 "error": "Only datasets with 'smoltrace-' prefix are allowed. Please use smoltrace-leaderboard or other smoltrace-* datasets.",
                 "data": []
-            }, indent=2)
+            }, indent=2, default=str)
 
         # Load dataset from HuggingFace
         # Use user-provided token or fall back to environment variable
@@ -774,7 +774,7 @@ async def get_dataset(
                 "error": "Dataset is empty",
                 "total_rows": 0,
                 "data": []
-            }, indent=2)
+            }, indent=2, default=str)
 
         # Get total row count before limiting
         total_rows = len(df)
@@ -807,7 +807,7 @@ async def get_dataset(
             "dataset_repo": dataset_repo,
             "error": f"Failed to load dataset: {str(e)}",
             "data": []
-        }, indent=2)
+        }, indent=2, default=str)
 
 
 # ============================================================================
@@ -848,13 +848,13 @@ def get_leaderboard_data(repo: str = "kshitijthakkar/smoltrace-leaderboard", hf_
             "total_runs": len(data),
             "repository": repo,
             "data": data
-        }, indent=2)
+        }, indent=2, default=str)
 
     except Exception as e:
         return json.dumps({
             "error": str(e),
             "repository": repo
-        })
+        }, indent=2, default=str)
 
 
 @gr.mcp.resource("trace://{trace_id}/{repo}")
@@ -894,7 +894,7 @@ def get_trace_data(trace_id: str, repo: str, hf_token: Optional[str] = None) -> 
                 "error": f"Trace {trace_id} not found",
                 "trace_id": trace_id,
                 "repository": repo
-            })
+            }, indent=2, default=str)
 
         trace_row = trace_data.iloc[0]
 
@@ -908,14 +908,14 @@ def get_trace_data(trace_id: str, repo: str, hf_token: Optional[str] = None) -> 
             "repository": repo,
             "run_id": trace_row.get('run_id', 'unknown'),
             "spans": spans
-        }, indent=2)
+        }, indent=2, default=str)
 
     except Exception as e:
         return json.dumps({
             "error": str(e),
             "trace_id": trace_id,
             "repository": repo
-        })
+        }, indent=2, default=str)
 
 
 @gr.mcp.resource("cost://model/{model_name}")
@@ -989,14 +989,14 @@ def get_cost_data(model_name: str) -> str:
             "cost_data": model_cost,
             "hardware_options": hardware_costs,
             "currency": "USD"
-        }, indent=2)
+        }, indent=2, default=str)
     else:
         return json.dumps({
             "model": model_name,
             "error": "Model not found in cost database",
             "available_models": list(llm_costs.keys()),
             "hardware_options": hardware_costs
-        }, indent=2)
+        }, indent=2, default=str)
 
 
 # ============================================================================
