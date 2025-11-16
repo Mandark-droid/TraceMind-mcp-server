@@ -27,9 +27,7 @@ async def analyze_leaderboard(
     leaderboard_repo: str = "kshitijthakkar/smoltrace-leaderboard",
     metric_focus: str = "overall",
     time_range: str = "last_week",
-    top_n: int = 5,
-    hf_token: Optional[str] = None,
-    gemini_api_key: Optional[str] = None
+    top_n: int = 5
 ) -> str:
     """
     Answer questions about the leaderboard with AI-powered analysis and insights.
@@ -47,26 +45,25 @@ async def analyze_leaderboard(
     agent evaluation results, including top performers, trends, cost/performance
     trade-offs, and actionable recommendations.
 
+    **Security**: Requires GEMINI_API_KEY environment variable.
+    **Note**: All SMOLTRACE datasets are public - no HF token required.
+
     Args:
         leaderboard_repo (str): HuggingFace dataset repository containing leaderboard data. Default: "kshitijthakkar/smoltrace-leaderboard"
         metric_focus (str): Primary metric to focus analysis on. Options: "overall", "accuracy", "cost", "latency", "co2". Default: "overall"
         time_range (str): Time range for analysis. Options: "last_week", "last_month", "all_time". Default: "last_week"
         top_n (int): Number of top models to highlight in analysis. Must be between 3 and 10. Default: 5
-        hf_token (Optional[str]): HuggingFace token for dataset access. If None, uses HF_TOKEN environment variable.
-        gemini_api_key (Optional[str]): Google Gemini API key. If None, uses GEMINI_API_KEY environment variable.
 
     Returns:
         str: Markdown-formatted analysis with top performers, insights, trade-offs, and recommendations
     """
     try:
-        # Initialize Gemini client with provided key or from environment
-        gemini_client = GeminiClient(api_key=gemini_api_key) if gemini_api_key else GeminiClient()
-        # Load leaderboard data from HuggingFace
+        # Initialize Gemini client from environment variable only
+        gemini_client = GeminiClient()
+        # Load leaderboard data from HuggingFace (public dataset)
         print(f"Loading leaderboard from {leaderboard_repo}...")
 
-        # Use user-provided token or fall back to environment variable
-        token = hf_token if hf_token else os.getenv("HF_TOKEN")
-        ds = load_dataset(leaderboard_repo, split="train", token=token)
+        ds = load_dataset(leaderboard_repo, split="train")
         df = pd.DataFrame(ds)
 
         # Filter by time range
@@ -135,9 +132,7 @@ async def analyze_leaderboard(
 async def debug_trace(
     trace_id: str,
     traces_repo: str,
-    question: str = "Analyze this trace and explain what happened",
-    hf_token: Optional[str] = None,
-    gemini_api_key: Optional[str] = None
+    question: str = "Analyze this trace and explain what happened"
 ) -> str:
     """
     Answer questions about agent traces with AI-powered debugging and analysis.
@@ -159,21 +154,16 @@ async def debug_trace(
         trace_id (str): Unique identifier for the trace to analyze (e.g., "trace_abc123")
         traces_repo (str): HuggingFace dataset repository containing trace data (e.g., "username/agent-traces-model-timestamp")
         question (str): Specific question about the trace. Default: "Analyze this trace and explain what happened"
-        hf_token (Optional[str]): HuggingFace token for dataset access. If None, uses HF_TOKEN environment variable.
-        gemini_api_key (Optional[str]): Google Gemini API key. If None, uses GEMINI_API_KEY environment variable.
-
     Returns:
         str: Markdown-formatted debug analysis with step-by-step breakdown, timing information, and answer to the question
     """
     try:
         # Initialize Gemini client with provided key or from environment
-        gemini_client = GeminiClient(api_key=gemini_api_key) if gemini_api_key else GeminiClient()
-        # Load traces dataset
+        gemini_client = GeminiClient()
+        # Load traces dataset (public dataset)
         print(f"Loading traces from {traces_repo}...")
 
-        # Use user-provided token or fall back to environment variable
-        token = hf_token if hf_token else os.getenv("HF_TOKEN")
-        ds = load_dataset(traces_repo, split="train", token=token)
+        ds = load_dataset(traces_repo, split="train")
         df = pd.DataFrame(ds)
 
         # Find the specific trace
@@ -243,8 +233,7 @@ async def estimate_cost(
     model: str,
     agent_type: str,
     num_tests: int = 100,
-    hardware: str = "auto",
-    gemini_api_key: Optional[str] = None
+    hardware: str = "auto"
 ) -> str:
     """
     Answer questions about evaluation costs with AI-powered estimates and recommendations.
@@ -267,14 +256,12 @@ async def estimate_cost(
         agent_type (str): Type of agent capabilities to test. Options: "tool", "code", "both"
         num_tests (int): Number of test cases to run. Must be between 10 and 1000. Default: 100
         hardware (str): Hardware type for HuggingFace Jobs. Options: "auto", "cpu", "gpu_a10", "gpu_h200". Default: "auto"
-        gemini_api_key (Optional[str]): Google Gemini API key. If None, uses GEMINI_API_KEY environment variable.
-
     Returns:
         str: Markdown-formatted cost estimate with breakdown of LLM costs, HF Jobs costs, duration, CO2 emissions, and optimization tips
     """
     try:
         # Initialize Gemini client with provided key or from environment
-        gemini_client = GeminiClient(api_key=gemini_api_key) if gemini_api_key else GeminiClient()
+        gemini_client = GeminiClient()
         # Determine if API or local model
         is_api_model = any(provider in model.lower() for provider in ["openai", "anthropic", "google", "cohere"])
 
@@ -378,9 +365,7 @@ async def compare_runs(
     run_id_1: str,
     run_id_2: str,
     leaderboard_repo: str = "kshitijthakkar/smoltrace-leaderboard",
-    comparison_focus: str = "comprehensive",
-    hf_token: Optional[str] = None,
-    gemini_api_key: Optional[str] = None
+    comparison_focus: str = "comprehensive"
 ) -> str:
     """
     Compare two evaluation runs and generate AI-powered comparative analysis.
@@ -394,19 +379,13 @@ async def compare_runs(
         run_id_2 (str): Second run ID to compare
         leaderboard_repo (str): HuggingFace dataset repository containing leaderboard data. Default: "kshitijthakkar/smoltrace-leaderboard"
         comparison_focus (str): Focus area for comparison. Options: "comprehensive", "cost", "performance", "eco_friendly". Default: "comprehensive"
-        hf_token (Optional[str]): HuggingFace token for dataset access. If None, uses HF_TOKEN environment variable.
-        gemini_api_key (Optional[str]): Google Gemini API key. If None, uses GEMINI_API_KEY environment variable.
-
     Returns:
         str: Markdown-formatted comparative analysis with winner for each category, trade-offs, and use case recommendations
     """
     try:
         # Initialize Gemini client with provided key or from environment
-        gemini_client = GeminiClient(api_key=gemini_api_key) if gemini_api_key else GeminiClient()
-        # Load leaderboard data
-        # Use user-provided token or fall back to environment variable
-        token = hf_token if hf_token else os.getenv("HF_TOKEN")
-        dataset = load_dataset(leaderboard_repo, split="train", token=token)
+        gemini_client = GeminiClient()
+        # Load leaderboard data        dataset = load_dataset(leaderboard_repo, split="train")
         df = pd.DataFrame(dataset)
 
         # Find the two runs
@@ -580,9 +559,7 @@ Provide eco-conscious recommendations for sustainable AI deployment.
 async def analyze_results(
     results_repo: str,
     analysis_focus: str = "comprehensive",
-    max_rows: int = 100,
-    hf_token: Optional[str] = None,
-    gemini_api_key: Optional[str] = None
+    max_rows: int = 100
 ) -> str:
     """
     Analyze detailed test results and provide optimization recommendations.
@@ -601,20 +578,17 @@ async def analyze_results(
         results_repo (str): HuggingFace dataset repository containing results (e.g., "username/smoltrace-results-gpt4-20251114")
         analysis_focus (str): Focus area. Options: "failures", "performance", "cost", "comprehensive". Default: "comprehensive"
         max_rows (int): Maximum test cases to analyze. Default: 100. Range: 10-500
-        hf_token (Optional[str]): HuggingFace token for dataset access. If None, uses HF_TOKEN environment variable.
-        gemini_api_key (Optional[str]): Google Gemini API key. If None, uses GEMINI_API_KEY environment variable.
-
     Returns:
         str: Markdown-formatted analysis with failure patterns, performance insights, cost analysis, and optimization recommendations
     """
     try:
         # Initialize Gemini client
-        gemini_client = GeminiClient(api_key=gemini_api_key) if gemini_api_key else GeminiClient()
+        gemini_client = GeminiClient()
 
         # Load results dataset
         print(f"Loading results from {results_repo}...")
-        token = hf_token if hf_token else os.getenv("HF_TOKEN")
-        ds = load_dataset(results_repo, split="train", token=token)
+
+        ds = load_dataset(results_repo, split="train")
         df = pd.DataFrame(ds)
 
         if df.empty:
@@ -727,8 +701,7 @@ async def analyze_results(
 @gr.mcp.tool()
 async def get_dataset(
     dataset_repo: str,
-    max_rows: int = 50,
-    hf_token: Optional[str] = None
+    max_rows: int = 50
 ) -> str:
     """
     Load SMOLTRACE datasets from HuggingFace and return as JSON.
@@ -748,8 +721,6 @@ async def get_dataset(
     Args:
         dataset_repo (str): HuggingFace dataset repository path with "smoltrace-" prefix (e.g., "kshitijthakkar/smoltrace-leaderboard")
         max_rows (int): Maximum number of rows to return. Default: 50. Range: 1-200
-        hf_token (Optional[str]): HuggingFace token for dataset access. If None, uses HF_TOKEN environment variable.
-
     Returns:
         str: JSON object with dataset data and metadata
     """
@@ -762,10 +733,7 @@ async def get_dataset(
                 "data": []
             }, indent=2, default=str)
 
-        # Load dataset from HuggingFace
-        # Use user-provided token or fall back to environment variable
-        token = hf_token if hf_token else os.getenv("HF_TOKEN")
-        dataset = load_dataset(dataset_repo, split="train", token=token)
+        # Load dataset from HuggingFace        dataset = load_dataset(dataset_repo, split="train")
         df = pd.DataFrame(dataset)
 
         if df.empty:
@@ -815,7 +783,7 @@ async def get_dataset(
 # ============================================================================
 
 @gr.mcp.resource("leaderboard://{repo}")
-def get_leaderboard_data(repo: str = "kshitijthakkar/smoltrace-leaderboard", hf_token: Optional[str] = None) -> str:
+def get_leaderboard_data(repo: str = "kshitijthakkar/smoltrace-leaderboard") -> str:
     """
     [RAW DATA ONLY] Get raw leaderboard data in JSON format - NO analysis or insights.
 
@@ -829,17 +797,15 @@ def get_leaderboard_data(repo: str = "kshitijthakkar/smoltrace-leaderboard", hf_
 
     For questions, insights, recommendations, or analysis → use analyze_leaderboard tool instead!
 
+    **Note**: All SMOLTRACE datasets are public - no authentication required.
+
     Args:
         repo (str): HuggingFace dataset repository name. Default: "kshitijthakkar/smoltrace-leaderboard"
-        hf_token (Optional[str]): HuggingFace token for dataset access. If None, uses HF_TOKEN environment variable.
-
     Returns:
         str: Raw JSON string containing all evaluation runs without any analysis
     """
-    try:
-        # Use user-provided token or fall back to environment variable
-        token = hf_token if hf_token else os.getenv("HF_TOKEN")
-        ds = load_dataset(repo, split="train", token=token)
+    try:        
+        ds = load_dataset(repo, split="train")
         df = pd.DataFrame(ds)
 
         # Convert to JSON with proper formatting
@@ -858,7 +824,7 @@ def get_leaderboard_data(repo: str = "kshitijthakkar/smoltrace-leaderboard", hf_
 
 
 @gr.mcp.resource("trace://{trace_id}/{repo}")
-def get_trace_data(trace_id: str, repo: str, hf_token: Optional[str] = None) -> str:
+def get_trace_data(trace_id: str, repo: str) -> str:
     """
     [RAW DATA ONLY] Get raw OpenTelemetry trace data in JSON format - NO analysis.
 
@@ -872,18 +838,16 @@ def get_trace_data(trace_id: str, repo: str, hf_token: Optional[str] = None) -> 
 
     For debugging, questions, or analysis → use debug_trace tool instead!
 
+    **Note**: All SMOLTRACE datasets are public - no authentication required.
+
     Args:
         trace_id (str): Unique identifier for the trace (e.g., "trace_abc123")
         repo (str): HuggingFace dataset repository containing traces (e.g., "username/agent-traces-model")
-        hf_token (Optional[str]): HuggingFace token for dataset access. If None, uses HF_TOKEN environment variable.
-
     Returns:
         str: Raw JSON string containing OpenTelemetry spans without any analysis
     """
-    try:
-        # Use user-provided token or fall back to environment variable
-        token = hf_token if hf_token else os.getenv("HF_TOKEN")
-        ds = load_dataset(repo, split="train", token=token)
+    try:        
+        ds = load_dataset(repo, split="train")
         df = pd.DataFrame(ds)
 
         # Find specific trace

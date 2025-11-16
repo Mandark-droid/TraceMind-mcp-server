@@ -80,151 +80,7 @@ def create_gradio_ui():
 
         **MCP Endpoint (SSE - Deprecated)**: `https://mcp-1st-birthday-tracemind-mcp-server.hf.space/gradio_api/mcp/sse`
         """)
-
-        # Session state for API keys
-        gemini_key_state = gr.State(value=os.getenv("GEMINI_API_KEY", ""))
-        hf_token_state = gr.State(value=os.getenv("HF_TOKEN", ""))
-
         with gr.Tabs():
-            # Tab 0: Settings (API Keys)
-            with gr.Tab("⚙️ Settings"):
-                gr.Markdown("""
-                ## 🔑 API Key Configuration
-
-                Configure your API keys here. These will override environment variables for this session only.
-
-                **Why configure here?**
-                - No need to set environment variables
-                - Test with different API keys easily
-                - Secure session-only storage (not persisted)
-
-                **Security Note**: API keys are stored in session state only and are not saved permanently.
-                """)
-
-                with gr.Row():
-                    with gr.Column():
-                        gr.Markdown("### Google Gemini API Key")
-                        gemini_key_input = gr.Textbox(
-                            label="Gemini API Key",
-                            placeholder="Enter your Google Gemini API key",
-                            type="password",
-                            value=os.getenv("GEMINI_API_KEY", ""),
-                            info="Get your key from: https://aistudio.google.com/app/apikey"
-                        )
-                        gemini_status = gr.Markdown("Status: Using environment variable" if os.getenv("GEMINI_API_KEY") else "⚠️ Status: No API key configured")
-
-                    with gr.Column():
-                        gr.Markdown("### HuggingFace Token")
-                        hf_token_input = gr.Textbox(
-                            label="HuggingFace Token",
-                            placeholder="Enter your HuggingFace token",
-                            type="password",
-                            value=os.getenv("HF_TOKEN", ""),
-                            info="Get your token from: https://huggingface.co/settings/tokens"
-                        )
-                        hf_status = gr.Markdown("Status: Using environment variable" if os.getenv("HF_TOKEN") else "⚠️ Status: No token configured")
-
-                with gr.Row():
-                    save_keys_button = gr.Button("💾 Save API Keys for This Session", variant="primary", size="lg")
-                    clear_keys_button = gr.Button("🗑️ Clear Session Keys", variant="secondary")
-
-                keys_save_status = gr.Markdown("")
-
-                def save_api_keys(gemini_key, hf_token):
-                    """
-                    Save API keys to session state.
-
-                    Args:
-                        gemini_key (str): Google Gemini API key
-                        hf_token (str): HuggingFace token
-
-                    Returns:
-                        tuple: Updated state values and status message
-                    """
-                    status_messages = []
-
-                    # Validate and save Gemini key
-                    if gemini_key and gemini_key.strip():
-                        try:
-                            # Test the key by creating a client
-                            test_client = GeminiClient(api_key=gemini_key.strip())
-                            gemini_saved = gemini_key.strip()
-                            status_messages.append("✅ Gemini API key validated and saved")
-                        except Exception as e:
-                            gemini_saved = os.getenv("GEMINI_API_KEY", "")
-                            status_messages.append(f"❌ Gemini API key invalid: {str(e)}")
-                    else:
-                        gemini_saved = os.getenv("GEMINI_API_KEY", "")
-                        status_messages.append("ℹ️ Gemini API key cleared (using environment variable if set)")
-
-                    # Validate and save HF token
-                    if hf_token and hf_token.strip():
-                        hf_saved = hf_token.strip()
-                        status_messages.append("✅ HuggingFace token saved")
-                    else:
-                        hf_saved = os.getenv("HF_TOKEN", "")
-                        status_messages.append("ℹ️ HuggingFace token cleared (using environment variable if set)")
-
-                    status_markdown = "\n\n".join(status_messages)
-
-                    return gemini_saved, hf_saved, f"### Save Status\n\n{status_markdown}"
-
-                def clear_api_keys():
-                    """
-                    Clear session API keys and revert to environment variables.
-
-                    Returns:
-                        tuple: Cleared state values and status message
-                    """
-                    env_gemini = os.getenv("GEMINI_API_KEY", "")
-                    env_hf = os.getenv("HF_TOKEN", "")
-
-                    status = "### Keys Cleared\n\nReverted to environment variables.\n\n"
-                    if env_gemini:
-                        status += "✅ Using GEMINI_API_KEY from environment\n\n"
-                    else:
-                        status += "⚠️ No GEMINI_API_KEY in environment\n\n"
-
-                    if env_hf:
-                        status += "✅ Using HF_TOKEN from environment"
-                    else:
-                        status += "⚠️ No HF_TOKEN in environment"
-
-                    return env_gemini, env_hf, status
-
-                save_keys_button.click(
-                    fn=save_api_keys,
-                    inputs=[gemini_key_input, hf_token_input],
-                    outputs=[gemini_key_state, hf_token_state, keys_save_status]
-                )
-
-                clear_keys_button.click(
-                    fn=clear_api_keys,
-                    inputs=[],
-                    outputs=[gemini_key_state, hf_token_state, keys_save_status]
-                )
-
-                gr.Markdown("""
-                ---
-
-                ### How It Works
-
-                1. **Enter your API keys** in the fields above
-                2. **Click "Save API Keys"** to validate and store them for this session
-                3. **Use any tool** - they will automatically use your configured keys
-                4. **Keys are session-only** - they won't be saved when you close the browser
-
-                ### Environment Variables (Alternative)
-
-                You can also set these as environment variables:
-                ```bash
-                export GEMINI_API_KEY="your-key-here"
-                export HF_TOKEN="your-token-here"
-                ```
-
-                UI-configured keys will always override environment variables.
-                """)
-
             # Tab 1: Analyze Leaderboard
             with gr.Tab("📊 Analyze Leaderboard"):
                 gr.Markdown("### Get AI-powered insights from evaluation leaderboard")
@@ -258,7 +114,7 @@ def create_gradio_ui():
                     with gr.Column():
                         lb_output = gr.Markdown(label="Analysis Results")
 
-                async def run_analyze_leaderboard(repo, metric, time_range, top_n, gemini_key, hf_token):
+                async def run_analyze_leaderboard(repo, metric, time_range, top_n):
                     """
                     Analyze agent evaluation leaderboard and generate AI-powered insights.
 
@@ -278,16 +134,11 @@ def create_gradio_ui():
                         str: Markdown-formatted analysis with top performers, trends, and recommendations
                     """
                     try:
-                        # Use user-provided key or fall back to environment variable
-                        api_key = gemini_key if gemini_key and gemini_key.strip() else None
-
                         result = await analyze_leaderboard(
                             leaderboard_repo=repo,
                             metric_focus=metric,
                             time_range=time_range,
-                            top_n=int(top_n),
-                            hf_token=hf_token if hf_token and hf_token.strip() else None,
-                            gemini_api_key=api_key
+                            top_n=int(top_n)
                         )
                         return result
                     except Exception as e:
@@ -295,7 +146,7 @@ def create_gradio_ui():
 
                 lb_button.click(
                     fn=run_analyze_leaderboard,
-                    inputs=[lb_repo, lb_metric, lb_time, lb_top_n, gemini_key_state, hf_token_state],
+                    inputs=[lb_repo, lb_metric, lb_time, lb_top_n],
                     outputs=[lb_output]
                 )
 
@@ -325,7 +176,7 @@ def create_gradio_ui():
                     with gr.Column():
                         trace_output = gr.Markdown(label="Debug Analysis")
 
-                async def run_debug_trace(trace_id_val, traces_repo_val, question_val, gemini_key, hf_token):
+                async def run_debug_trace(trace_id_val, traces_repo_val, question_val):
                     """
                     Debug a specific agent execution trace using OpenTelemetry data.
 
@@ -347,23 +198,17 @@ def create_gradio_ui():
                         if not trace_id_val or not traces_repo_val:
                             return "❌ **Error**: Please provide both Trace ID and Traces Repository"
 
-                        # Use user-provided key or fall back to environment variable
-                        api_key = gemini_key if gemini_key and gemini_key.strip() else None
-
                         result = await debug_trace(
                             trace_id=trace_id_val,
                             traces_repo=traces_repo_val,
-                            question=question_val or "Analyze this trace",
-                            hf_token=hf_token if hf_token and hf_token.strip() else None,
-                            gemini_api_key=api_key
-                        )
+                            question=question_val or "Analyze this trace")
                         return result
                     except Exception as e:
                         return f"❌ **Error**: {str(e)}"
 
                 trace_button.click(
                     fn=run_debug_trace,
-                    inputs=[trace_id, traces_repo, question, gemini_key_state, hf_token_state],
+                    inputs=[trace_id, traces_repo, question],
                     outputs=[trace_output]
                 )
 
@@ -401,7 +246,7 @@ def create_gradio_ui():
                     with gr.Column():
                         cost_output = gr.Markdown(label="Cost Estimate")
 
-                async def run_estimate_cost(model, agent_type, num_tests, hardware, gemini_key):
+                async def run_estimate_cost(model, agent_type, num_tests, hardware):
                     """
                     Estimate the cost, duration, and CO2 emissions of running agent evaluations.
 
@@ -423,15 +268,11 @@ def create_gradio_ui():
                         if not model:
                             return "❌ **Error**: Please provide a model name"
 
-                        # Use user-provided key or fall back to environment variable
-                        api_key = gemini_key if gemini_key and gemini_key.strip() else None
-
                         result = await estimate_cost(
                             model=model,
                             agent_type=agent_type,
                             num_tests=int(num_tests),
-                            hardware=hardware,
-                            gemini_api_key=api_key
+                            hardware=hardware
                         )
                         return result
                     except Exception as e:
@@ -439,7 +280,7 @@ def create_gradio_ui():
 
                 cost_button.click(
                     fn=run_estimate_cost,
-                    inputs=[cost_model, cost_agent_type, cost_num_tests, cost_hardware, gemini_key_state],
+                    inputs=[cost_model, cost_agent_type, cost_num_tests, cost_hardware],
                     outputs=[cost_output]
                 )
 
@@ -482,7 +323,7 @@ def create_gradio_ui():
                 compare_button = gr.Button("🔍 Compare Runs", variant="primary")
                 compare_output = gr.Markdown()
 
-                async def run_compare_runs(run_id_1, run_id_2, focus, repo, gemini_key, hf_token):
+                async def run_compare_runs(run_id_1, run_id_2, focus, repo):
                     """
                     Compare two evaluation runs and generate AI-powered comparative analysis.
 
@@ -502,16 +343,11 @@ def create_gradio_ui():
                         str: Markdown-formatted comparative analysis with winners, trade-offs, and recommendations
                     """
                     try:
-                        # Use user-provided key or fall back to environment variable
-                        api_key = gemini_key if gemini_key and gemini_key.strip() else None
-
                         result = await compare_runs(
                             run_id_1=run_id_1,
                             run_id_2=run_id_2,
                             leaderboard_repo=repo,
-                            comparison_focus=focus,
-                            hf_token=hf_token if hf_token and hf_token.strip() else None,
-                            gemini_api_key=api_key
+                            comparison_focus=focus
                         )
                         return result
                     except Exception as e:
@@ -519,7 +355,7 @@ def create_gradio_ui():
 
                 compare_button.click(
                     fn=run_compare_runs,
-                    inputs=[compare_run_id_1, compare_run_id_2, compare_focus, compare_repo, gemini_key_state, hf_token_state],
+                    inputs=[compare_run_id_1, compare_run_id_2, compare_focus, compare_repo],
                     outputs=[compare_output]
                 )
 
@@ -558,7 +394,7 @@ def create_gradio_ui():
                 results_button = gr.Button("🔍 Analyze Results", variant="primary")
                 results_output = gr.Markdown()
 
-                async def run_analyze_results(repo, focus, max_rows, gemini_key, hf_token):
+                async def run_analyze_results(repo, focus, max_rows):
                     """
                     Analyze detailed test results and provide optimization recommendations.
 
@@ -576,15 +412,10 @@ def create_gradio_ui():
                         if not repo:
                             return "❌ **Error**: Please provide a results repository"
 
-                        # Use user-provided key or fall back to environment variable
-                        api_key = gemini_key if gemini_key and gemini_key.strip() else None
-
                         result = await analyze_results(
                             results_repo=repo,
                             analysis_focus=focus,
-                            max_rows=int(max_rows),
-                            hf_token=hf_token if hf_token and hf_token.strip() else None,
-                            gemini_api_key=api_key
+                            max_rows=int(max_rows)
                         )
                         return result
                     except Exception as e:
@@ -592,7 +423,7 @@ def create_gradio_ui():
 
                 results_button.click(
                     fn=run_analyze_results,
-                    inputs=[results_repo_input, results_focus, results_max_rows, gemini_key_state, hf_token_state],
+                    inputs=[results_repo_input, results_focus, results_max_rows],
                     outputs=[results_output]
                 )
 
@@ -629,7 +460,7 @@ def create_gradio_ui():
                 dataset_button = gr.Button("📥 Load Dataset", variant="primary")
                 dataset_output = gr.JSON(label="Dataset JSON Output")
 
-                async def run_get_dataset(repo, max_rows, hf_token):
+                async def run_get_dataset(repo, max_rows):
                     """
                     Load SMOLTRACE datasets from HuggingFace and return as JSON.
 
@@ -649,8 +480,7 @@ def create_gradio_ui():
                         import json
                         result = await get_dataset(
                             dataset_repo=repo,
-                            max_rows=int(max_rows),
-                            hf_token=hf_token if hf_token and hf_token.strip() else None
+                            max_rows=int(max_rows)
                         )
                         # Parse JSON string back to dict for JSON component
                         return json.loads(result)
@@ -659,7 +489,7 @@ def create_gradio_ui():
 
                 dataset_button.click(
                     fn=run_get_dataset,
-                    inputs=[dataset_repo_input, dataset_max_rows, hf_token_state],
+                    inputs=[dataset_repo_input, dataset_max_rows],
                     outputs=[dataset_output]
                 )
 
