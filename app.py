@@ -32,6 +32,8 @@ Tools Provided:
     🐛 debug_trace - Debug agent execution traces with AI
     💰 estimate_cost - Predict evaluation costs before running
     ⚖️ compare_runs - Compare evaluation runs with AI analysis
+    🏆 get_top_performers - Get top N models from leaderboard (optimized)
+    📈 get_leaderboard_summary - Get leaderboard overview statistics
     📦 get_dataset - Load SMOLTRACE datasets as JSON
     🧪 generate_synthetic_dataset - Create domain-specific test datasets
     📤 push_dataset_to_hub - Upload datasets to HuggingFace Hub
@@ -64,6 +66,8 @@ from mcp_tools import (
     debug_trace,
     estimate_cost,
     compare_runs,
+    get_top_performers,
+    get_leaderboard_summary,
     get_dataset,
     generate_synthetic_dataset,
     push_dataset_to_hub
@@ -80,19 +84,24 @@ def create_gradio_ui():
     """Create Gradio UI for testing MCP tools"""
 
     # Note: Gradio 6 has different theme API
-    with gr.Blocks(title="TraceMind MCP Server") as demo:
+    with gr.Blocks(
+        title="TraceMind MCP Server",
+        theme=gr.themes.Ocean()
+    ) as demo:
         gr.Markdown("""
         # 🤖 TraceMind MCP Server
 
         **AI-Powered Analysis for Agent Evaluation Data**
 
-        This server provides **7 MCP Tools + 3 MCP Resources + 3 MCP Prompts**:
+        This server provides **9 MCP Tools + 3 MCP Resources + 3 MCP Prompts**:
 
-        ### MCP Tools (AI-Powered)
-        - 📊 **Analyze Leaderboard**: Get insights from evaluation results
-        - 🐛 **Debug Trace**: Understand what happened in a specific test
-        - 💰 **Estimate Cost**: Predict evaluation costs before running
+        ### MCP Tools (AI-Powered & Optimized)
+        - 📊 **Analyze Leaderboard**: Get AI-powered insights from evaluation results
+        - 🐛 **Debug Trace**: Understand what happened in a specific test with AI debugging
+        - 💰 **Estimate Cost**: Predict evaluation costs before running with AI recommendations
         - ⚖️ **Compare Runs**: Compare two evaluation runs with AI-powered analysis
+        - 🏆 **Get Top Performers**: Get top N models from leaderboard (optimized for quick queries)
+        - 📈 **Get Leaderboard Summary**: Get high-level leaderboard statistics (optimized for overview)
         - 📦 **Get Dataset**: Load any HuggingFace dataset as JSON for flexible analysis
         - 🧪 **Generate Synthetic Dataset**: Create domain-specific test datasets for SMOLTRACE
         - 📤 **Push to Hub**: Upload generated datasets to HuggingFace Hub
@@ -1023,9 +1032,100 @@ def create_gradio_ui():
 
                 ---
 
-                ### 5. get_dataset
+                ### 5. get_top_performers
+
+                **Description**: Get top performing models from leaderboard - optimized for quick queries
+
+                **⚡ Performance**: This tool is **optimized** to avoid token bloat by returning only essential data for top performers instead of the full leaderboard (51 runs).
+
+                **When to use**: Use this instead of `get_dataset()` when you need to answer questions like:
+                - "Which model is leading?"
+                - "Show me the top 5 models"
+                - "What's the best model for cost?"
+
+                **Parameters**:
+                - `leaderboard_repo` (str): HuggingFace dataset repository (default: "kshitijthakkar/smoltrace-leaderboard")
+                - `metric` (str): Metric to rank by (default: "success_rate")
+                  - Options: "success_rate", "total_cost_usd", "avg_duration_ms", "co2_emissions_g"
+                - `top_n` (int): Number of top models to return (default: 5, range: 1-20)
+
+                **Returns**: JSON object with top performers - **ready to use, no parsing needed**
+
+                **Benefits vs get_dataset()**:
+                - ✅ Returns only 5-20 runs instead of all 51 runs (90% token reduction)
+                - ✅ Properly formatted JSON (no string conversion issues)
+                - ✅ Pre-sorted by your chosen metric
+                - ✅ Includes only essential columns (10 fields vs 20+ fields)
+
+                **Example Response**:
+                ```json
+                {
+                  "metric_ranked_by": "success_rate",
+                  "ranking_order": "descending (higher is better)",
+                  "total_runs_in_leaderboard": 51,
+                  "top_n": 5,
+                  "top_performers": [
+                    {
+                      "run_id": "run_123",
+                      "model": "openai/gpt-4",
+                      "success_rate": 95.8,
+                      "total_cost_usd": 0.05,
+                      ...
+                    }
+                  ]
+                }
+                ```
+
+                ---
+
+                ### 6. get_leaderboard_summary
+
+                **Description**: Get high-level leaderboard summary statistics - optimized for overview queries
+
+                **⚡ Performance**: This tool is **optimized** to return only summary statistics (no individual runs), avoiding the full dataset that causes token bloat.
+
+                **When to use**: Use this instead of `get_dataset()` when you need to answer questions like:
+                - "How many runs are in the leaderboard?"
+                - "What's the average success rate?"
+                - "Give me an overview of the leaderboard"
+
+                **Parameters**:
+                - `leaderboard_repo` (str): HuggingFace dataset repository (default: "kshitijthakkar/smoltrace-leaderboard")
+
+                **Returns**: JSON object with summary statistics - **ready to use, no parsing needed**
+
+                **Benefits vs get_dataset()**:
+                - ✅ Returns aggregated stats instead of raw data (99% token reduction)
+                - ✅ Properly formatted JSON (no string conversion issues)
+                - ✅ Includes breakdowns by agent_type and provider
+                - ✅ Shows top 3 models by success rate
+                - ✅ Calculates averages, totals, and distributions
+
+                **Example Response**:
+                ```json
+                {
+                  "leaderboard_repo": "kshitijthakkar/smoltrace-leaderboard",
+                  "summary": {
+                    "total_runs": 51,
+                    "unique_models": 15,
+                    "overall_stats": {
+                      "avg_success_rate": 89.5,
+                      "best_success_rate": 95.8,
+                      "avg_cost_per_run_usd": 0.023
+                    },
+                    "breakdown_by_agent_type": {...},
+                    "top_3_models_by_success_rate": [...]
+                  }
+                }
+                ```
+
+                ---
+
+                ### 7. get_dataset
 
                 **Description**: Load SMOLTRACE datasets from HuggingFace and return as JSON
+
+                **⚠️ Note**: For leaderboard queries, prefer using `get_top_performers()` or `get_leaderboard_summary()` instead - they're optimized to avoid token bloat!
 
                 **Parameters**:
                 - `dataset_repo` (str, required): HuggingFace dataset repository path with "smoltrace-" prefix (e.g., "kshitijthakkar/smoltrace-leaderboard")
@@ -1036,19 +1136,19 @@ def create_gradio_ui():
                 **Restriction**: Only datasets with "smoltrace-" in the repository name are allowed for security.
 
                 **Use Cases**:
-                - Load smoltrace-leaderboard to find run IDs, model names, and supporting dataset references
                 - Load smoltrace-results-* datasets to see individual test case details
                 - Load smoltrace-traces-* datasets to access OpenTelemetry trace data
                 - Load smoltrace-metrics-* datasets to get GPU metrics and performance data
+                - For leaderboard: Use `get_top_performers()` or `get_leaderboard_summary()` instead!
 
                 **Workflow**:
-                1. Call `get_dataset("kshitijthakkar/smoltrace-leaderboard")` to see all runs
-                2. Find the `results_dataset`, `traces_dataset`, or `metrics_dataset` field for a specific run
-                3. Call `get_dataset(dataset_repo)` with that smoltrace-* dataset name to get detailed data
+                1. Use `get_leaderboard_summary()` for overview questions
+                2. Use `get_top_performers()` for "top N" queries
+                3. Use `get_dataset()` only for non-leaderboard datasets or when you need specific run IDs
 
                 ---
 
-                ### 6. generate_synthetic_dataset
+                ### 8. generate_synthetic_dataset
 
                 **Description**: Generate domain-specific synthetic test datasets for SMOLTRACE evaluations using AI
 
@@ -1085,7 +1185,7 @@ def create_gradio_ui():
 
                 ---
 
-                ### 7. push_dataset_to_hub
+                ### 9. push_dataset_to_hub
 
                 **Description**: Push a generated synthetic dataset to HuggingFace Hub
 
@@ -1149,8 +1249,8 @@ def create_gradio_ui():
 
                 ### What's Exposed via MCP:
 
-                #### 7 MCP Tools (AI-Powered)
-                The seven tools above (`analyze_leaderboard`, `debug_trace`, `estimate_cost`, `compare_runs`, `get_dataset`, `generate_synthetic_dataset`, `push_dataset_to_hub`)
+                #### 9 MCP Tools (AI-Powered & Optimized)
+                The nine tools above (`analyze_leaderboard`, `debug_trace`, `estimate_cost`, `compare_runs`, `get_top_performers`, `get_leaderboard_summary`, `get_dataset`, `generate_synthetic_dataset`, `push_dataset_to_hub`)
                 are automatically exposed as MCP tools and can be called from any MCP client.
 
                 #### 3 MCP Resources (Data Access)

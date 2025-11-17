@@ -719,6 +719,196 @@ async def analyze_results(
 
 
 @gr.mcp.tool()
+async def get_top_performers(
+    leaderboard_repo: str = "kshitijthakkar/smoltrace-leaderboard",
+    metric: str = "success_rate",
+    top_n: int = 5
+) -> str:
+    """
+    Get top performing models from leaderboard - optimized for quick queries.
+
+    **USE THIS TOOL** instead of get_dataset() when you need to answer questions like:
+    - "Which model is leading?"
+    - "Show me the top 5 models"
+    - "What's the best model for cost?"
+
+    This tool returns ONLY the essential data for top performers, avoiding the
+    full 51-run dataset that causes token bloat. Returns properly formatted JSON
+    that's ready to use without parsing.
+
+    Args:
+        leaderboard_repo (str): HuggingFace dataset repository. Default: "kshitijthakkar/smoltrace-leaderboard"
+        metric (str): Metric to rank by. Options: "success_rate", "total_cost_usd", "avg_duration_ms", "co2_emissions_g". Default: "success_rate"
+        top_n (int): Number of top models to return. Range: 1-20. Default: 5
+
+    Returns:
+        str: JSON object with top performers - ready to use, no parsing needed
+    """
+    try:
+        # Load leaderboard dataset
+        ds = load_dataset(leaderboard_repo, split="train")
+        df = pd.DataFrame(ds)
+
+        if df.empty:
+            return json.dumps({
+                "error": "Leaderboard dataset is empty",
+                "top_performers": []
+            }, indent=2)
+
+        # Validate metric
+        valid_metrics = ["success_rate", "total_cost_usd", "avg_duration_ms", "co2_emissions_g"]
+        if metric not in valid_metrics:
+            return json.dumps({
+                "error": f"Invalid metric '{metric}'. Valid options: {valid_metrics}",
+                "top_performers": []
+            }, indent=2)
+
+        # Limit top_n
+        top_n = max(1, min(20, top_n))
+
+        # Sort by metric (ascending for cost/latency/co2, descending for success_rate)
+        ascending = metric in ["total_cost_usd", "avg_duration_ms", "co2_emissions_g"]
+        df_sorted = df.sort_values(metric, ascending=ascending)
+
+        # Get top N
+        top_models = df_sorted.head(top_n)
+
+        # Select only essential columns to minimize tokens
+        essential_columns = [
+            "run_id", "model", "agent_type", "provider",
+            "success_rate", "total_cost_usd", "avg_duration_ms",
+            "co2_emissions_g", "total_tests", "timestamp"
+        ]
+
+        # Filter to only columns that exist
+        available_columns = [col for col in essential_columns if col in top_models.columns]
+        top_models_filtered = top_models[available_columns]
+
+        # CRITICAL FIX: Handle NaN/None properly
+        top_models_filtered = top_models_filtered.where(pd.notnull(top_models_filtered), None)
+
+        # Convert to dict
+        top_performers_data = top_models_filtered.to_dict(orient="records")
+
+        result = {
+            "metric_ranked_by": metric,
+            "ranking_order": "ascending (lower is better)" if ascending else "descending (higher is better)",
+            "total_runs_in_leaderboard": len(df),
+            "top_n": top_n,
+            "top_performers": top_performers_data
+        }
+
+        return json.dumps(result, indent=2)
+
+    except Exception as e:
+        return json.dumps({
+            "error": f"Failed to get top performers: {str(e)}",
+            "top_performers": []
+        }, indent=2)
+
+
+@gr.mcp.tool()
+async def get_leaderboard_summary(
+    leaderboard_repo: str = "kshitijthakkar/smoltrace-leaderboard"
+) -> str:
+    """
+    Get high-level leaderboard summary statistics - optimized for overview queries.
+
+    **USE THIS TOOL** instead of get_dataset() when you need to answer questions like:
+    - "How many runs are in the leaderboard?"
+    - "What's the average success rate?"
+    - "Give me an overview of the leaderboard"
+
+    This tool returns ONLY summary statistics (no individual runs), avoiding the
+    full dataset that causes token bloat. Returns properly formatted JSON that's
+    ready to use without parsing.
+
+    Args:
+        leaderboard_repo (str): HuggingFace dataset repository. Default: "kshitijthakkar/smoltrace-leaderboard"
+
+    Returns:
+        str: JSON object with summary statistics - ready to use, no parsing needed
+    """
+    try:
+        # Load leaderboard dataset
+        ds = load_dataset(leaderboard_repo, split="train")
+        df = pd.DataFrame(ds)
+
+        if df.empty:
+            return json.dumps({
+                "error": "Leaderboard dataset is empty",
+                "summary": {}
+            }, indent=2)
+
+        # Calculate summary statistics
+        summary = {
+            "total_runs": len(df),
+            "unique_models": int(df['model'].nunique()) if 'model' in df.columns else 0,
+            "unique_submitters": int(df['submitted_by'].nunique()) if 'submitted_by' in df.columns else 0,
+            "overall_stats": {
+                "avg_success_rate": float(df['success_rate'].mean()) if 'success_rate' in df.columns else None,
+                "best_success_rate": float(df['success_rate'].max()) if 'success_rate' in df.columns else None,
+                "worst_success_rate": float(df['success_rate'].min()) if 'success_rate' in df.columns else None,
+                "avg_cost_per_run_usd": float(df['total_cost_usd'].mean()) if 'total_cost_usd' in df.columns else None,
+                "avg_duration_ms": float(df['avg_duration_ms'].mean()) if 'avg_duration_ms' in df.columns else None,
+                "total_co2_emissions_g": float(df['co2_emissions_g'].sum()) if 'co2_emissions_g' in df.columns else None
+            },
+            "breakdown_by_agent_type": {},
+            "breakdown_by_provider": {},
+            "top_3_models_by_success_rate": []
+        }
+
+        # Breakdown by agent type
+        if 'agent_type' in df.columns and 'success_rate' in df.columns:
+            agent_stats = df.groupby('agent_type').agg({
+                'success_rate': 'mean',
+                'run_id': 'count'
+            }).to_dict()
+
+            summary["breakdown_by_agent_type"] = {
+                agent_type: {
+                    "count": int(agent_stats['run_id'][agent_type]),
+                    "avg_success_rate": float(agent_stats['success_rate'][agent_type])
+                }
+                for agent_type in agent_stats['run_id'].keys()
+            }
+
+        # Breakdown by provider
+        if 'provider' in df.columns and 'success_rate' in df.columns:
+            provider_stats = df.groupby('provider').agg({
+                'success_rate': 'mean',
+                'run_id': 'count'
+            }).to_dict()
+
+            summary["breakdown_by_provider"] = {
+                provider: {
+                    "count": int(provider_stats['run_id'][provider]),
+                    "avg_success_rate": float(provider_stats['success_rate'][provider])
+                }
+                for provider in provider_stats['run_id'].keys()
+            }
+
+        # Top 3 models by success rate
+        if 'success_rate' in df.columns and 'model' in df.columns:
+            top_3 = df.nlargest(3, 'success_rate')[['model', 'success_rate', 'total_cost_usd', 'avg_duration_ms']]
+            top_3 = top_3.where(pd.notnull(top_3), None)
+            summary["top_3_models_by_success_rate"] = top_3.to_dict(orient="records")
+
+        result = {
+            "leaderboard_repo": leaderboard_repo,
+            "summary": summary
+        }
+
+        return json.dumps(result, indent=2)
+
+    except Exception as e:
+        return json.dumps({
+            "error": f"Failed to get leaderboard summary: {str(e)}",
+            "summary": {}
+        }, indent=2)
+
+
+@gr.mcp.tool()
 async def get_dataset(
     dataset_repo: str,
     max_rows: int = 50
@@ -751,7 +941,7 @@ async def get_dataset(
                 "dataset_repo": dataset_repo,
                 "error": "Only datasets with 'smoltrace-' prefix are allowed. Please use smoltrace-leaderboard or other smoltrace-* datasets.",
                 "data": []
-            }, indent=2, default=str)
+            }, indent=2)
 
         # Load dataset from HuggingFace        dataset = load_dataset(dataset_repo, split="train")
         df = pd.DataFrame(dataset)
@@ -762,7 +952,7 @@ async def get_dataset(
                 "error": "Dataset is empty",
                 "total_rows": 0,
                 "data": []
-            }, indent=2, default=str)
+            }, indent=2)
 
         # Get total row count before limiting
         total_rows = len(df)
@@ -776,6 +966,10 @@ async def get_dataset(
 
         df_limited = df.head(max_rows)
 
+        # CRITICAL FIX: Replace NaN/None values with proper None before conversion
+        # This ensures json.dumps() handles them correctly as null instead of "None" string
+        df_limited = df_limited.where(pd.notnull(df_limited), None)
+
         # Convert to list of dictionaries
         data = df_limited.to_dict(orient="records")
 
@@ -788,14 +982,16 @@ async def get_dataset(
             "data": data
         }
 
-        return json.dumps(result, indent=2, default=str)
+        # CRITICAL FIX: Remove default=str to ensure proper JSON serialization
+        # Using default=str was converting None to string "None" causing agent parsing issues
+        return json.dumps(result, indent=2)
 
     except Exception as e:
         return json.dumps({
             "dataset_repo": dataset_repo,
             "error": f"Failed to load dataset: {str(e)}",
             "data": []
-        }, indent=2, default=str)
+        }, indent=2)
 
 
 # ============================================================================
