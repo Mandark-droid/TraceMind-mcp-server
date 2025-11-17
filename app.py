@@ -66,6 +66,7 @@ from mcp_tools import (
     debug_trace,
     estimate_cost,
     compare_runs,
+    analyze_results,
     get_top_performers,
     get_leaderboard_summary,
     get_dataset,
