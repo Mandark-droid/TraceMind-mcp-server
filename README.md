@@ -190,6 +190,73 @@ Loads SMOLTRACE datasets from HuggingFace and returns raw data as JSON:
 
 **Example Use Case**: When the user asks "Can you provide me with the list of last 10 runIds and model names?", the LLM loads the leaderboard dataset and extracts the requested information from the JSON response.
 
+#### 6. generate_synthetic_dataset
+
+Generates domain-specific synthetic test datasets for SMOLTRACE evaluations using Google Gemini 2.5 Pro:
+- AI-powered task generation tailored to your domain
+- Custom tool specifications
+- Configurable difficulty distribution (balanced, easy_only, medium_only, hard_only, progressive)
+- Target specific agent types (tool, code, or both)
+- Output follows SMOLTRACE task format exactly
+- Supports up to 100 tasks with parallel batched generation
+
+**SMOLTRACE Task Format**:
+Each generated task includes:
+```json
+{
+  "id": "unique_identifier",
+  "prompt": "Clear, specific task for the agent",
+  "expected_tool": "tool_name",
+  "expected_tool_calls": 1,
+  "difficulty": "easy|medium|hard",
+  "agent_type": "tool|code",
+  "expected_keywords": ["keyword1", "keyword2"]
+}
+```
+
+**Enterprise Use Cases**:
+- **Custom Tools**: Create benchmarks for your proprietary APIs and tools
+- **Industry-Specific**: Generate tasks for finance, healthcare, legal, manufacturing, etc.
+- **Internal Workflows**: Test agents on company-specific processes
+- **Rapid Prototyping**: Quickly create evaluation datasets without manual curation
+
+**Difficulty Calibration**:
+- **Easy** (40%): Single tool call, straightforward input, clear expected output
+- **Medium** (40%): Multiple tool calls OR complex input parsing OR conditional logic
+- **Hard** (20%): Multiple tools, complex reasoning, edge cases, error handling
+
+**Output Includes**:
+- `dataset_info`: Metadata (domain, tools, counts, timestamp)
+- `tasks`: Ready-to-use SMOLTRACE task array
+- `usage_instructions`: Step-by-step guide for HuggingFace upload and SMOLTRACE usage
+
+**Example Use Case**: A financial services company wants to evaluate their customer service agent that uses custom tools for stock quotes, portfolio analysis, and transaction processing. They use this tool to generate 50 realistic tasks covering common customer inquiries across different difficulty levels, then run SMOLTRACE evaluations to benchmark different LLM models before deployment.
+
+#### 7. push_dataset_to_hub
+
+Upload generated datasets to HuggingFace Hub with proper formatting and metadata:
+- Automatically formats data for HuggingFace datasets library
+- Handles authentication via HF_TOKEN
+- Validates dataset structure before upload
+- Supports both public and private datasets
+- Adds comprehensive metadata (description, tags, license)
+- Creates dataset card with usage instructions
+
+**Parameters**:
+- `dataset_name`: Repository name on HuggingFace (e.g., "username/my-dataset")
+- `data`: Dataset content (list of dictionaries or JSON string)
+- `description`: Dataset description for the card
+- `private`: Whether to make the dataset private (default: False)
+
+**Example Workflow**:
+1. Generate synthetic dataset with `generate_synthetic_dataset`
+2. Review and modify tasks if needed
+3. Upload to HuggingFace with `push_dataset_to_hub`
+4. Use in SMOLTRACE evaluations or share with team
+
+**Example Use Case**: After generating a custom evaluation dataset for your domain, upload it to HuggingFace to share with your team, version control your benchmarks, or make it publicly available for the community.
+
+
 ## MCP Resources Usage
 
 Resources provide direct data access without AI analysis:
@@ -363,20 +430,21 @@ A: Use the SSE endpoint (`/gradio_api/mcp/sse`) for now, but note that it's depr
 A: Streamable HTTP is the newer, more efficient protocol with better error handling and performance. SSE is the legacy protocol being phased out.
 
 **Q: How do I test if my connection works?**
-A: After configuring your client, restart it and look for "tracemind" in your available MCP tools/servers. You should see 6 tools, 3 resources, and 3 prompts.
+A: After configuring your client, restart it and look for "tracemind" in your available MCP tools/servers. You should see 7 tools, 3 resources, and 3 prompts.
 
 **Q: Can I use this MCP server without authentication?**
 A: The MCP endpoint is publicly accessible. However, the tools may require HuggingFace datasets to be public or accessible with your HF token (configured server-side).
 
 ### Available MCP Components
 
-**Tools** (6):
+**Tools** (7):
 1. **analyze_leaderboard**: AI-powered leaderboard analysis with Gemini 2.5 Pro
 2. **debug_trace**: Trace debugging with AI insights
 3. **estimate_cost**: Cost estimation with optimization recommendations
 4. **compare_runs**: Compare two evaluation runs with AI-powered analysis
-5. **analyze_results**: Deep dive into test results with optimization recommendations
-6. **get_dataset**: Load SMOLTRACE datasets (smoltrace-* only) as JSON
+5. **get_dataset**: Load SMOLTRACE datasets (smoltrace-* only) as JSON
+6. **generate_synthetic_dataset**: Create domain-specific test datasets with AI
+7. **push_dataset_to_hub**: Upload datasets to HuggingFace Hub
 
 **Resources** (3):
 1. **leaderboard://{repo}**: Direct access to raw leaderboard data in JSON
@@ -396,7 +464,7 @@ See full API documentation in the Gradio interface under "📖 API Documentation
 TraceMind-mcp-server/
 ├── app.py                      # Gradio UI + MCP server (mcp_server=True)
 ├── gemini_client.py            # Google Gemini 2.5 Pro integration
-├── mcp_tools.py                # 3 tool implementations
+├── mcp_tools.py                # 7 tool implementations
 ├── requirements.txt            # Python dependencies
 ├── .env.example                # Environment variable template
 ├── .gitignore
@@ -511,20 +579,25 @@ Note: This requires actual trace data from an evaluation run. For testing purpos
 - **Data Source**: HuggingFace Datasets
 - **Transport**: Streamable HTTP (recommended) and SSE (deprecated)
 
-## Related Project: TraceMind UI (Track 2)
+## Related Project: TraceMind-AI (Track 2)
 
-This MCP server is designed to be consumed by **TraceMind UI** (separate submission for Track 2: MCP in Action).
+This MCP server is designed to be consumed by **[TraceMind-AI](https://huggingface.co/spaces/MCP-1st-Birthday/TraceMind)** (separate submission for Track 2: MCP in Action).
 
-TraceMind UI is a Gradio-based agent evaluation platform that uses these MCP tools to provide:
-- AI-powered leaderboard insights
-- Interactive trace debugging
-- Pre-evaluation cost estimates
+**Links**:
+- **Live Demo**: https://huggingface.co/spaces/MCP-1st-Birthday/TraceMind
+- **GitHub**: https://github.com/Mandark-droid/TraceMind-AI
+
+TraceMind-AI is a Gradio-based agent evaluation platform that uses these MCP tools to provide:
+- AI-powered leaderboard insights with autonomous agent chat
+- Interactive trace debugging with MCP-powered Q&A
+- Real-time cost estimation and comparison
+- Complete evaluation workflow visualization
 
 ## File Descriptions
 
 ### app.py
 Main Gradio application with:
-- Testing UI for all 6 tools
+- Testing UI for all 7 tools
 - MCP server enabled via `mcp_server=True`
 - API documentation
 
@@ -536,15 +609,16 @@ Google Gemini 2.5 Pro client that:
 - Uses `gemini-2.5-pro-latest` model (can switch to `gemini-2.5-flash-latest`)
 
 ### mcp_tools.py
-Complete MCP implementation with 12 components:
+Complete MCP implementation with 13 components:
 
-**Tools** (6 async functions):
+**Tools** (7 async functions):
 - `analyze_leaderboard()`: AI-powered leaderboard analysis
 - `debug_trace()`: AI-powered trace debugging
 - `estimate_cost()`: AI-powered cost estimation
 - `compare_runs()`: AI-powered run comparison
-- `analyze_results()`: AI-powered results analysis with optimization recommendations
 - `get_dataset()`: Load SMOLTRACE datasets as JSON
+- `generate_synthetic_dataset()`: Create domain-specific test datasets with AI
+- `push_dataset_to_hub()`: Upload datasets to HuggingFace Hub
 
 **Resources** (3 decorated functions with `@gr.mcp.resource()`):
 - `get_leaderboard_data()`: Raw leaderboard JSON data
@@ -692,8 +766,8 @@ For issues or questions:
 
 ### v1.0.0 (2025-11-14)
 - Initial release for MCP Hackathon
-- **Complete MCP Implementation**: 11 components total
-  - 5 AI-powered tools (analyze_leaderboard, debug_trace, estimate_cost, compare_runs, get_dataset)
+- **Complete MCP Implementation**: 13 components total
+  - 7 AI-powered tools (analyze_leaderboard, debug_trace, estimate_cost, compare_runs, get_dataset, generate_synthetic_dataset, push_dataset_to_hub)
   - 3 data resources (leaderboard, trace, cost data)
   - 3 prompt templates (analysis, debug, optimization)
 - Gradio native MCP support with decorators (`@gr.mcp.*`)
