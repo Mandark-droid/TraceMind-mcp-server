@@ -1327,11 +1327,26 @@ if __name__ == "__main__":
         # Create Gradio interface
         demo = create_gradio_ui()
 
+        # Theme configuration (Ocean-inspired) - Gradio 6 requires theme in launch()
+        theme = gr.themes.Base(
+            primary_hue="blue",
+            secondary_hue="cyan",
+            neutral_hue="slate",
+            font=gr.themes.GoogleFont("Inter"),
+        ).set(
+            body_background_fill="*neutral_50",
+            body_background_fill_dark="*neutral_900",
+            button_primary_background_fill="*primary_500",
+            button_primary_background_fill_hover="*primary_600",
+            button_primary_text_color="white",
+        )
+
         # Launch with MCP server enabled
         demo.launch(
             server_name="0.0.0.0",
             server_port=7860,
-            mcp_server=True  # Enable MCP server functionality
+            mcp_server=True,  # Enable MCP server functionality
+            theme=theme  # Gradio 6: theme goes here, not in Blocks()
         )
 
     except Exception as e:
