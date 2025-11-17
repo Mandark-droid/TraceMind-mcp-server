@@ -19,6 +19,10 @@ tags:
 
 # TraceMind MCP Server
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Mandark-droid/TraceMind-mcp-server/assets/Logo.png" alt="TraceMind MCP Server Logo" width="200"/>
+</p>
+
 **AI-Powered Analysis Tools for Agent Evaluation Data**
 
 [![MCP's 1st Birthday Hackathon](https://img.shields.io/badge/MCP%27s%201st%20Birthday-Hackathon-blue)](https://github.com/modelcontextprotocol)
