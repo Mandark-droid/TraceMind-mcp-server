@@ -630,18 +630,24 @@ async def analyze_results(
         # Analyze by category/difficulty
         category_stats = {}
         if 'category' in df_sample.columns:
-            category_stats = df_sample.groupby('category').agg({
+            cat_agg = df_sample.groupby('category').agg({
                 'success': ['count', 'sum', 'mean'],
                 'execution_time_ms': 'mean',
                 'cost_usd': 'sum'
-            }).to_dict()
+            })
+            # Flatten multi-index columns
+            cat_agg.columns = ['_'.join(col).strip() for col in cat_agg.columns.values]
+            category_stats = cat_agg.to_dict('index')
 
         difficulty_stats = {}
         if 'difficulty' in df_sample.columns:
-            difficulty_stats = df_sample.groupby('difficulty').agg({
+            diff_agg = df_sample.groupby('difficulty').agg({
                 'success': ['count', 'sum', 'mean'],
                 'execution_time_ms': 'mean'
-            }).to_dict()
+            })
+            # Flatten multi-index columns
+            diff_agg.columns = ['_'.join(col).strip() for col in diff_agg.columns.values]
+            difficulty_stats = diff_agg.to_dict('index')
 
         # Find slowest tests
         slowest_tests = df_sample.nlargest(5, 'execution_time_ms')[
