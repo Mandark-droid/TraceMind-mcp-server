@@ -417,7 +417,7 @@ TraceMind-mcp-server/
 Go to https://huggingface.co/new-space
 
 - **Space name**: `TraceMind-mcp-server`
-- **License**: MIT
+- **License**: AGPL-3.0
 - **SDK**: Gradio
 - **Hardware**: CPU Basic (free tier works fine)
 
