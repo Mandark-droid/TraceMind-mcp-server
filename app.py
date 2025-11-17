@@ -83,11 +83,21 @@ except ValueError:
 def create_gradio_ui():
     """Create Gradio UI for testing MCP tools"""
 
-    # Note: Gradio 6 has different theme API
-    with gr.Blocks(
-        title="TraceMind MCP Server",
-        theme=gr.themes.Ocean()
-    ) as demo:
+    # Theme configuration (Ocean-inspired)
+    theme = gr.themes.Base(
+        primary_hue="blue",
+        secondary_hue="cyan",
+        neutral_hue="slate",
+        font=gr.themes.GoogleFont("Inter"),
+    ).set(
+        body_background_fill="*neutral_50",
+        body_background_fill_dark="*neutral_900",
+        button_primary_background_fill="*primary_500",
+        button_primary_background_fill_hover="*primary_600",
+        button_primary_text_color="white",
+    )
+
+    with gr.Blocks(title="TraceMind MCP Server", theme=theme) as demo:
         gr.Markdown("""
         # 🤖 TraceMind MCP Server
 
