@@ -405,7 +405,9 @@ async def compare_runs(
     try:
         # Initialize Gemini client with provided key or from environment
         gemini_client = GeminiClient()
-        # Load leaderboard data        dataset = load_dataset(leaderboard_repo, split="train")
+
+        # Load leaderboard data
+        dataset = load_dataset(leaderboard_repo, split="train")
         df = pd.DataFrame(dataset)
 
         # Find the two runs
