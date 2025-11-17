@@ -55,15 +55,10 @@ All analysis is powered by **Google Gemini 2.5 Pro** for intelligent, context-aw
 
 ## 🔗 Quick Links
 
-### Current Deployment (Development)
-- **Gradio UI**: https://huggingface.co/spaces/kshitijthakkar/TraceMind-mcp-server
-- **MCP Endpoint**: `https://kshitijthakkar-tracemind-mcp-server.hf.space/gradio_api/mcp/`
-- **Auto-Config**: Add `kshitijthakkar-tracemind-mcp-server` at https://huggingface.co/settings/mcp
-
-### After Hackathon Submission (Production)
 - **Gradio UI**: https://huggingface.co/spaces/MCP-1st-Birthday/TraceMind-mcp-server
-- **MCP Endpoint**: `https://mcp-1st-birthday-tracemind-mcp-server.hf.space/gradio_api/mcp/`
-- **Auto-Config**: Add `mcp-1st-birthday-tracemind-mcp-server` at https://huggingface.co/settings/mcp
+- **MCP Endpoint (SSE - Recommended)**: `https://mcp-1st-birthday-tracemind-mcp-server.hf.space/gradio_api/mcp/sse`
+- **MCP Endpoint (Streamable HTTP)**: `https://mcp-1st-birthday-tracemind-mcp-server.hf.space/gradio_api/mcp/`
+- **Auto-Config**: Add `MCP-1st-Birthday/TraceMind-mcp-server` at https://huggingface.co/settings/mcp
 
 > 💡 **Tip**: Use the Auto-Config link above for the easiest setup! It generates the correct config for your MCP client automatically.
 
@@ -278,40 +273,24 @@ This Gradio app uses `mcp_server=True` in the launch configuration, which automa
 
 Once deployed to HuggingFace Spaces, your MCP server will be available at:
 
-#### Current Space (Development)
-**🎯 MCP Endpoint (Streamable HTTP - Recommended)**:
-```
-https://kshitijthakkar-tracemind-mcp-server.hf.space/gradio_api/mcp/
-```
-
-**⚠️ MCP Endpoint (SSE - Deprecated)**:
-```
-https://kshitijthakkar-tracemind-mcp-server.hf.space/gradio_api/mcp/sse
-```
-
-#### After Hackathon Submission
-**🎯 MCP Endpoint (Streamable HTTP - Recommended)**:
-```
-https://mcp-1st-birthday-tracemind-mcp-server.hf.space/gradio_api/mcp/
-```
-
-**⚠️ MCP Endpoint (SSE - Deprecated)**:
+**🎯 MCP Endpoint (SSE - Recommended)**:
 ```
 https://mcp-1st-birthday-tracemind-mcp-server.hf.space/gradio_api/mcp/sse
 ```
 
-**Note**: Use the **Streamable HTTP endpoint** (recommended) for all new integrations. The SSE endpoint is deprecated and maintained for backward compatibility only. After submission to the hackathon org, use the `mcp-1st-birthday-tracemind-mcp-server` URLs.
+**MCP Endpoint (Streamable HTTP)**:
+```
+https://mcp-1st-birthday-tracemind-mcp-server.hf.space/gradio_api/mcp/
+```
 
-Configure your MCP client (Claude Desktop, Cursor, Cline, etc.) with the streamable HTTP endpoint.
+**Note**: Both SSE and Streamable HTTP endpoints are fully supported. The SSE endpoint is recommended for most MCP clients.
 
 ### ✨ Easiest Way to Connect
 
 **Recommended for all users** - HuggingFace provides an automatic configuration generator:
 
 1. **Visit**: https://huggingface.co/settings/mcp (while logged in)
-2. **Add Space**: Enter one of the following:
-   - **Development**: `kshitijthakkar-tracemind-mcp-server`
-   - **After Hackathon Submission**: `mcp-1st-birthday-tracemind-mcp-server`
+2. **Add Space**: Enter `MCP-1st-Birthday/TraceMind-mcp-server`
 3. **Select Client**: Choose Claude Desktop, VSCode, Cursor, etc.
 4. **Copy Config**: Get the auto-generated configuration snippet
 5. **Paste & Restart**: Add to your client's config file and restart
@@ -327,38 +306,14 @@ If you prefer to manually configure your MCP client:
 {
   "mcpServers": {
     "tracemind": {
-      "url": "https://kshitijthakkar-tracemind-mcp-server.hf.space/gradio_api/mcp/",
-      "transport": "streamable-http"
-    }
-  }
-}
-```
-
-**After Hackathon Submission - Use this URL instead**:
-```json
-{
-  "mcpServers": {
-    "tracemind": {
-      "url": "https://mcp-1st-birthday-tracemind-mcp-server.hf.space/gradio_api/mcp/",
-      "transport": "streamable-http"
+      "url": "https://mcp-1st-birthday-tracemind-mcp-server.hf.space/gradio_api/mcp/sse",
+      "transport": "sse"
     }
   }
 }
 ```
 
 **VSCode / Cursor (`settings.json` or `.cursor/mcp.json`)**:
-```json
-{
-  "mcp.servers": {
-    "tracemind": {
-      "url": "https://kshitijthakkar-tracemind-mcp-server.hf.space/gradio_api/mcp/",
-      "transport": "streamable-http"
-    }
-  }
-}
-```
-
-**After Hackathon Submission - Use this URL instead**:
 ```json
 {
   "mcp.servers": {
@@ -371,9 +326,8 @@ If you prefer to manually configure your MCP client:
 ```
 
 **Cline / Other MCP Clients**:
-- **Current URL**: `https://kshitijthakkar-tracemind-mcp-server.hf.space/gradio_api/mcp/`
-- **After Hackathon Submission**: `https://mcp-1st-birthday-tracemind-mcp-server.hf.space/gradio_api/mcp/`
-- **Transport**: `streamable-http` (or `http` depending on client)
+- **URL**: `https://mcp-1st-birthday-tracemind-mcp-server.hf.space/gradio_api/mcp/sse`
+- **Transport**: `sse` (or use streamable HTTP endpoint with `streamable-http` transport)
 
 ### ❓ Connection FAQ
 
@@ -469,23 +423,14 @@ In Space settings → Tags, add:
 
 Your MCP server will be publicly available at:
 
-#### Current Space (Development)
-
-**Gradio UI**:
-```
-https://huggingface.co/spaces/kshitijthakkar/TraceMind-mcp-server
-```
-
-**MCP Endpoint (Streamable HTTP)**:
-```
-https://kshitijthakkar-tracemind-mcp-server.hf.space/gradio_api/mcp/
-```
-
-#### After Hackathon Submission
-
 **Gradio UI**:
 ```
 https://huggingface.co/spaces/MCP-1st-Birthday/TraceMind-mcp-server
+```
+
+**MCP Endpoint (SSE - Recommended)**:
+```
+https://mcp-1st-birthday-tracemind-mcp-server.hf.space/gradio_api/mcp/sse
 ```
 
 **MCP Endpoint (Streamable HTTP)**:
@@ -690,20 +635,18 @@ This MCP server builds upon our open source agent evaluation ecosystem:
 - **Description**: Lightweight, production-ready evaluation framework for AI agents with OpenTelemetry instrumentation
 - **GitHub**: [https://github.com/Mandark-droid/SMOLTRACE](https://github.com/Mandark-droid/SMOLTRACE)
 - **PyPI**: [https://pypi.org/project/smoltrace/](https://pypi.org/project/smoltrace/)
-- **Social**: [@smoltrace on X](https://twitter.com/smoltrace)
 
 #### 🔭 TraceVerde - GenAI OpenTelemetry Instrumentation
 - **Description**: Automatic OpenTelemetry instrumentation for LLM frameworks (LiteLLM, Transformers, LangChain, etc.)
 - **GitHub**: [https://github.com/Mandark-droid/genai_otel_instrument](https://github.com/Mandark-droid/genai_otel_instrument)
 - **PyPI**: [https://pypi.org/project/genai-otel-instrument](https://pypi.org/project/genai-otel-instrument)
-- **Social**: [@genai_otel on X](https://twitter.com/genai_otel)
 
 ### Built By
 
 **Track**: Building MCP (Enterprise)
 **Author**: Kshitij Thakkar
-**Powered by**: Google Gemini 2.5 Pro
-**Built with**: Gradio 6 (native MCP support)
+**Powered by**: Google Gemini 2.5 Flash
+**Built with**: Gradio (native MCP support)
 
 ---
 

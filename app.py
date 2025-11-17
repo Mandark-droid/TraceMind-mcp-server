@@ -98,19 +98,11 @@ def create_gradio_ui():
 
         ## MCP Connection
 
-        ### Current Space (Development)
-        **HuggingFace Space**: `https://huggingface.co/spaces/kshitijthakkar/TraceMind-mcp-server`
-
-        **MCP Endpoint (Streamable HTTP - Recommended)**: `https://kshitijthakkar-tracemind-mcp-server.hf.space/gradio_api/mcp/`
-
-        **MCP Endpoint (SSE - Deprecated)**: `https://kshitijthakkar-tracemind-mcp-server.hf.space/gradio_api/mcp/sse`
-
-        ### After Hackathon Submission
         **HuggingFace Space**: `https://huggingface.co/spaces/MCP-1st-Birthday/TraceMind-mcp-server`
 
-        **MCP Endpoint (Streamable HTTP - Recommended)**: `https://mcp-1st-birthday-tracemind-mcp-server.hf.space/gradio_api/mcp/`
+        **MCP Endpoint (SSE - Recommended)**: `https://mcp-1st-birthday-tracemind-mcp-server.hf.space/gradio_api/mcp/sse`
 
-        **MCP Endpoint (SSE - Deprecated)**: `https://mcp-1st-birthday-tracemind-mcp-server.hf.space/gradio_api/mcp/sse`
+        **MCP Endpoint (Streamable HTTP)**: `https://mcp-1st-birthday-tracemind-mcp-server.hf.space/gradio_api/mcp/`
         """)
         with gr.Tabs():
             # Tab 1: Analyze Leaderboard
@@ -1136,11 +1128,11 @@ def create_gradio_ui():
 
                 This Gradio app is MCP-enabled. When deployed to HuggingFace Spaces, it can be accessed via MCP clients.
 
-                **Current Space**: `https://huggingface.co/spaces/kshitijthakkar/TraceMind-mcp-server`
+                **HuggingFace Space**: `https://huggingface.co/spaces/MCP-1st-Birthday/TraceMind-mcp-server`
 
-                **After Hackathon Submission**: `https://huggingface.co/spaces/MCP-1st-Birthday/TraceMind-mcp-server`
+                **MCP Endpoint (SSE - Recommended)**: `https://mcp-1st-birthday-tracemind-mcp-server.hf.space/gradio_api/mcp/sse`
 
-                **MCP Endpoint (Streamable HTTP)**: Use `{space-name}.hf.space/gradio_api/mcp/` (see easiest connection method at https://huggingface.co/settings/mcp)
+                **MCP Endpoint (Streamable HTTP)**: `https://mcp-1st-birthday-tracemind-mcp-server.hf.space/gradio_api/mcp/`
 
                 ### What's Exposed via MCP:
 
@@ -1187,7 +1179,8 @@ if __name__ == "__main__":
     logger.info("MCP Server: TraceMind Agent Evaluation Platform v1.0.0")
     logger.info("Protocol: Model Context Protocol (MCP)")
     logger.info("Transport: Gradio Native MCP Support (SSE)")
-    logger.info("MCP Endpoint: https://kshitijthakkar-tracemind-mcp-server.hf.space/gradio_api/mcp/")
+    logger.info("MCP Endpoint (SSE): https://mcp-1st-birthday-tracemind-mcp-server.hf.space/gradio_api/mcp/sse")
+    logger.info("MCP Endpoint (HTTP): https://mcp-1st-birthday-tracemind-mcp-server.hf.space/gradio_api/mcp/")
     logger.info("=" * 70)
     logger.info("Features:")
     logger.info("  ✓ 7 AI-Powered Tools (Leaderboard + Trace + Cost + Dataset)")
@@ -1213,7 +1206,7 @@ if __name__ == "__main__":
     logger.info("=" * 70)
     logger.info("How to Connect (Claude Desktop/HF MCP Client):")
     logger.info("  1. Go to https://huggingface.co/settings/mcp")
-    logger.info("  2. Add Space: kshitijthakkar-tracemind-mcp-server")
+    logger.info("  2. Add Space: MCP-1st-Birthday/TraceMind-mcp-server")
     logger.info("  3. Start using TraceMind tools in your MCP client!")
     logger.info("=" * 70)
     logger.info("Starting Gradio UI + MCP Server on 0.0.0.0:7860...")
