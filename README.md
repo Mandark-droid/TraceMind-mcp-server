@@ -32,6 +32,24 @@ tags:
 
 TraceMind MCP Server is a Gradio-based MCP (Model Context Protocol) server that provides a complete MCP implementation with:
 
+### 🏗️ **Built on Open Source Foundation**
+
+This MCP server is part of a complete agent evaluation ecosystem built on two foundational open-source projects:
+
+**🔭 TraceVerde (genai_otel_instrument)** - Automatic OpenTelemetry Instrumentation
+- **What**: Zero-code OTEL instrumentation for LLM frameworks (LiteLLM, Transformers, LangChain, etc.)
+- **Why**: Captures every LLM call, tool usage, and agent step automatically
+- **Links**: [GitHub](https://github.com/Mandark-droid/genai_otel_instrument) | [PyPI](https://pypi.org/project/genai-otel-instrument)
+
+**📊 SMOLTRACE** - Agent Evaluation Engine
+- **What**: Lightweight, production-ready evaluation framework with OTEL tracing built-in
+- **Why**: Generates structured datasets (leaderboard, results, traces, metrics) that this MCP server analyzes
+- **Links**: [GitHub](https://github.com/Mandark-droid/SMOLTRACE) | [PyPI](https://pypi.org/project/smoltrace/)
+
+**The Flow**: `TraceVerde` instruments your agents → `SMOLTRACE` evaluates them → `TraceMind MCP Server` provides AI-powered analysis of the results
+
+---
+
 ### 🛠️ **7 AI-Powered Tools**
 1. **📊 analyze_leaderboard**: Generate insights from evaluation leaderboard data
 2. **🐛 debug_trace**: Debug specific agent execution traces using OpenTelemetry data

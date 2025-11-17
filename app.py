@@ -4,6 +4,19 @@ TraceMind MCP Server - Hugging Face Space Entry Point (Track 1)
 This file serves as the entry point for HuggingFace Space deployment.
 Exposes 7 AI-powered MCP tools + 3 Resources + 3 Prompts via Gradio's native MCP support.
 
+Built on Open Source Foundation:
+    🔭 TraceVerde (genai_otel_instrument) - Automatic OpenTelemetry instrumentation
+       for LLM frameworks (LiteLLM, Transformers, LangChain, etc.)
+       GitHub: https://github.com/Mandark-droid/genai_otel_instrument
+       PyPI: https://pypi.org/project/genai-otel-instrument
+
+    📊 SMOLTRACE - Agent evaluation engine with OTEL tracing built-in
+       Generates structured datasets (leaderboard, results, traces, metrics)
+       GitHub: https://github.com/Mandark-droid/SMOLTRACE
+       PyPI: https://pypi.org/project/smoltrace/
+
+    The Flow: TraceVerde instruments → SMOLTRACE evaluates → TraceMind analyzes
+
 Architecture:
     User → MCP Client (Claude Desktop, Continue, Cline, etc.)
          → MCP Endpoint (Gradio SSE)
