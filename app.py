@@ -1,18 +1,48 @@
 """
-TraceMind MCP Server - Gradio Interface with MCP Support
+TraceMind MCP Server - Hugging Face Space Entry Point (Track 1)
 
-This server provides AI-powered analysis tools for agent evaluation data:
-1. analyze_leaderboard: Summarize trends and insights from leaderboard
-2. debug_trace: Debug specific agent execution traces
-3. estimate_cost: Predict evaluation costs before running
-4. compare_runs: Compare two evaluation runs with AI-powered analysis
-5. get_dataset: Load any HuggingFace dataset as JSON for flexible analysis
+This file serves as the entry point for HuggingFace Space deployment.
+Exposes 7 AI-powered MCP tools + 3 Resources + 3 Prompts via Gradio's native MCP support.
+
+Architecture:
+    User → MCP Client (Claude Desktop, Continue, Cline, etc.)
+         → MCP Endpoint (Gradio SSE)
+         → TraceMind MCP Server (this file)
+         → Tools (mcp_tools.py)
+         → Google Gemini 2.5 Pro API
+
+For Track 1: Building MCP Servers - Enterprise Category
+https://huggingface.co/MCP-1st-Birthday
+
+Tools Provided:
+    📊 analyze_leaderboard - AI-powered leaderboard analysis
+    🐛 debug_trace - Debug agent execution traces with AI
+    💰 estimate_cost - Predict evaluation costs before running
+    ⚖️ compare_runs - Compare evaluation runs with AI analysis
+    📦 get_dataset - Load SMOLTRACE datasets as JSON
+    🧪 generate_synthetic_dataset - Create domain-specific test datasets
+    📤 push_dataset_to_hub - Upload datasets to HuggingFace Hub
+
+Compatible with:
+- Claude Desktop (via Gradio MCP support)
+- Continue.dev (VS Code extension)
+- Cline (VS Code extension)
+- Any MCP client supporting Gradio's MCP protocol
 """
 
 import os
+import logging
 import gradio as gr
 from typing import Optional, Dict, Any
 from datetime import datetime
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[logging.StreamHandler()]
+)
+logger = logging.getLogger(__name__)
 
 # Local imports
 from gemini_client import GeminiClient
@@ -21,8 +51,9 @@ from mcp_tools import (
     debug_trace,
     estimate_cost,
     compare_runs,
-    analyze_results,
-    get_dataset
+    get_dataset,
+    generate_synthetic_dataset,
+    push_dataset_to_hub
 )
 
 # Initialize default Gemini client (fallback if user doesn't provide key)
@@ -42,15 +73,16 @@ def create_gradio_ui():
 
         **AI-Powered Analysis for Agent Evaluation Data**
 
-        This server provides **6 MCP Tools + 3 MCP Resources + 3 MCP Prompts**:
+        This server provides **7 MCP Tools + 3 MCP Resources + 3 MCP Prompts**:
 
         ### MCP Tools (AI-Powered)
         - 📊 **Analyze Leaderboard**: Get insights from evaluation results
         - 🐛 **Debug Trace**: Understand what happened in a specific test
         - 💰 **Estimate Cost**: Predict evaluation costs before running
         - ⚖️ **Compare Runs**: Compare two evaluation runs with AI-powered analysis
-        - 🔍 **Analyze Results**: Deep dive into test results with optimization recommendations
         - 📦 **Get Dataset**: Load any HuggingFace dataset as JSON for flexible analysis
+        - 🧪 **Generate Synthetic Dataset**: Create domain-specific test datasets for SMOLTRACE
+        - 📤 **Push to Hub**: Upload generated datasets to HuggingFace Hub
 
         ### MCP Resources (Data Access)
         - 📊 **leaderboard://{repo}**: Raw leaderboard data
@@ -493,12 +525,181 @@ def create_gradio_ui():
                     outputs=[dataset_output]
                 )
 
-            # Tab 6: MCP Resources & Prompts
+            # Tab 6: Generate Synthetic Dataset
+            with gr.Tab("🧪 Generate Synthetic Dataset"):
+                gr.Markdown("""
+                ## Create Domain-Specific Test Datasets for SMOLTRACE
+
+                Use AI to generate synthetic evaluation tasks tailored to your domain and tools.
+                Perfect for creating custom benchmarks when standard datasets don't fit your use case.
+
+                **🎯 Enterprise Use Case**: Quickly create evaluation datasets for:
+                - Custom tools and APIs your agents use
+                - Industry-specific domains (finance, healthcare, legal, etc.)
+                - Internal workflows and processes
+                - Specialized agent capabilities
+
+                **Output Format**: SMOLTRACE-compatible task dataset ready for HuggingFace upload
+                """)
+
+                with gr.Row():
+                    with gr.Column():
+                        synth_domain = gr.Textbox(
+                            label="Domain",
+                            placeholder="e.g., finance, healthcare, travel, ecommerce, customer_support",
+                            value="travel",
+                            info="The domain/industry for your synthetic tasks"
+                        )
+                        synth_tools = gr.Textbox(
+                            label="Tool Names (comma-separated)",
+                            placeholder="e.g., get_weather,search_flights,book_hotel,currency_converter",
+                            value="get_weather,search_flights,book_hotel",
+                            info="Names of tools your agent can use",
+                            lines=2
+                        )
+                        synth_num_tasks = gr.Slider(
+                            label="Number of Tasks",
+                            minimum=5,
+                            maximum=100,
+                            value=10,
+                            step=1,
+                            info="Total number of synthetic tasks to generate"
+                        )
+                        synth_difficulty = gr.Dropdown(
+                            label="Difficulty Distribution",
+                            choices=["balanced", "easy_only", "medium_only", "hard_only", "progressive"],
+                            value="balanced",
+                            info="How to distribute task difficulty"
+                        )
+                        synth_agent_type = gr.Dropdown(
+                            label="Agent Type",
+                            choices=["both", "tool", "code"],
+                            value="both",
+                            info="Target agent type for the tasks"
+                        )
+                        synth_button = gr.Button("🧪 Generate Synthetic Dataset", variant="primary", size="lg")
+
+                    with gr.Column():
+                        synth_output = gr.JSON(label="Generated Dataset (JSON)")
+
+                        gr.Markdown("""
+                        ### 📝 Next Steps
+
+                        After generation:
+                        1. **Copy the `tasks` array** from the JSON output above
+                        2. **Use the "Push to Hub" tab** to upload directly to HuggingFace
+                        3. **Or upload manually** following the instructions in the output
+
+                        **💡 Tip**: The generated dataset includes usage instructions and follows SMOLTRACE naming convention!
+                        """)
+
+                async def run_generate_synthetic(domain, tools, num_tasks, difficulty, agent_type):
+                    """Generate synthetic dataset with async support."""
+                    try:
+                        import json
+                        result = await generate_synthetic_dataset(
+                            domain=domain,
+                            tool_names=tools,
+                            num_tasks=int(num_tasks),
+                            difficulty_distribution=difficulty,
+                            agent_type=agent_type
+                        )
+                        return json.loads(result)
+                    except Exception as e:
+                        return {"error": str(e)}
+
+                synth_button.click(
+                    fn=run_generate_synthetic,
+                    inputs=[synth_domain, synth_tools, synth_num_tasks, synth_difficulty, synth_agent_type],
+                    outputs=[synth_output]
+                )
+
+            # Tab 7: Push Dataset to Hub
+            with gr.Tab("📤 Push to Hub"):
+                gr.Markdown("""
+                ## Upload Generated Dataset to HuggingFace Hub
+
+                Upload your synthetic dataset (from the previous tab or any SMOLTRACE-format dataset)
+                directly to HuggingFace Hub.
+
+                **Requirements**:
+                - HuggingFace account
+                - API token with write permissions ([Get one here](https://huggingface.co/settings/tokens))
+                - Dataset in SMOLTRACE format
+
+                **Naming Convention**: `{username}/smoltrace-{domain}-tasks` or `{username}/smoltrace-{domain}-tasks-v1`
+                """)
+
+                with gr.Row():
+                    with gr.Column():
+                        push_dataset_json = gr.Textbox(
+                            label="Dataset JSON (tasks array)",
+                            placeholder='[{"id": "task_001", "prompt": "...", "expected_tool": "...", ...}]',
+                            info="Paste the 'tasks' array from generate_synthetic_dataset output",
+                            lines=10
+                        )
+                        push_repo_name = gr.Textbox(
+                            label="Repository Name",
+                            placeholder="your-username/smoltrace-finance-tasks",
+                            info="HuggingFace repo name (follow SMOLTRACE convention)",
+                            value=""
+                        )
+                        push_hf_token = gr.Textbox(
+                            label="HuggingFace Token",
+                            placeholder="hf_...",
+                            info="API token with write permissions",
+                            type="password"
+                        )
+                        push_private = gr.Checkbox(
+                            label="Make dataset private",
+                            value=False,
+                            info="Private datasets are only visible to you"
+                        )
+                        push_button = gr.Button("📤 Push to HuggingFace Hub", variant="primary", size="lg")
+
+                    with gr.Column():
+                        push_output = gr.JSON(label="Upload Result")
+
+                        gr.Markdown("""
+                        ### 🎉 After Upload
+
+                        Once uploaded, you can:
+                        1. **View your dataset** at the URL provided in the output
+                        2. **Use in SMOLTRACE** evaluations with the command shown
+                        3. **Share with your team** (if public) or manage access (if private)
+
+                        **Example**: After uploading to `company/smoltrace-finance-tasks`:
+                        ```bash
+                        smoltrace-eval --model openai/gpt-4 --dataset-name company/smoltrace-finance-tasks
+                        ```
+                        """)
+
+                async def run_push_dataset(dataset_json, repo_name, hf_token, private):
+                    """Push dataset to hub with async support."""
+                    try:
+                        import json
+                        result = await push_dataset_to_hub(
+                            dataset_json=dataset_json,
+                            repo_name=repo_name,
+                            hf_token=hf_token,
+                            private=private
+                        )
+                        return json.loads(result)
+                    except Exception as e:
+                        return {"error": str(e)}
+
+                push_button.click(
+                    fn=run_push_dataset,
+                    inputs=[push_dataset_json, push_repo_name, push_hf_token, push_private],
+                    outputs=[push_output]
+                )
+
+            # Tab 9: MCP Resources & Prompts
             with gr.Tab("🔌 MCP Resources & Prompts"):
                 gr.Markdown("""
                 ## MCP Resources & Prompts
 
-                Beyond the 5 MCP Tools, this server also exposes **MCP Resources** and **MCP Prompts**
+                Beyond the 7 MCP Tools, this server also exposes **MCP Resources** and **MCP Prompts**
                 that MCP clients can use directly.
 
                 ### MCP Resources (Read-Only Data Access)
@@ -751,7 +952,7 @@ def create_gradio_ui():
                     outputs=[prompt_output]
                 )
 
-            # Tab 7: API Documentation
+            # Tab 10: API Documentation
             with gr.Tab("📖 API Documentation"):
                 gr.Markdown("""
                 ## MCP Tool Specifications
@@ -842,6 +1043,95 @@ def create_gradio_ui():
 
                 ---
 
+                ### 6. generate_synthetic_dataset
+
+                **Description**: Generate domain-specific synthetic test datasets for SMOLTRACE evaluations using AI
+
+                **Parameters**:
+                - `domain` (str, required): The domain for synthetic tasks (e.g., "finance", "healthcare", "travel", "ecommerce", "customer_support")
+                - `tool_names` (str, required): Comma-separated list of tool names to include (e.g., "get_weather,search_web,calculator")
+                - `num_tasks` (int): Number of synthetic tasks to generate (default: 10, range: 5-100)
+                - `difficulty_distribution` (str): How to distribute task difficulty (default: "balanced")
+                  - Options: "balanced" (40% easy, 40% medium, 20% hard), "easy_only", "medium_only", "hard_only", "progressive" (50% easy, 30% medium, 20% hard)
+                - `agent_type` (str): Target agent type for tasks (default: "both")
+                  - Options: "tool" (ToolCallingAgent), "code" (CodeAgent), "both" (50/50 mix)
+
+                **Returns**: JSON object with dataset_info (including batch statistics), tasks array (SMOLTRACE format), and usage_instructions
+
+                **🚀 Batched Generation**:
+                - Requests >20 tasks are automatically split into parallel batches
+                - Each batch generates up to 20 tasks concurrently
+                - Example: 100 tasks = 5 parallel batches (20 tasks each)
+                - Timeout: 120 seconds per batch
+                - Token limit: 8,192 per batch (40,960 total for 100 tasks)
+
+                **Performance**:
+                - 5-20 tasks: Single batch, ~30-60 seconds
+                - 21-100 tasks: Multiple parallel batches, ~60-120 seconds per batch
+
+                **SMOLTRACE Task Format**:
+                Each task includes: `id`, `prompt`, `expected_tool`, `expected_tool_calls` (optional), `difficulty`, `agent_type`, `expected_keywords` (optional)
+
+                **Use Cases**:
+                - Create custom evaluation datasets for industry-specific domains
+                - Test agents with proprietary tools and APIs
+                - Generate benchmarks for internal workflows
+                - Rapid prototyping of evaluation scenarios
+
+                ---
+
+                ### 7. push_dataset_to_hub
+
+                **Description**: Push a generated synthetic dataset to HuggingFace Hub
+
+                **Parameters**:
+                - `dataset_json` (str, required): JSON string containing the tasks array from generate_synthetic_dataset
+                - `repo_name` (str, required): HuggingFace repository name following SMOLTRACE naming convention
+                  - Format: `{username}/smoltrace-{domain}-tasks` or `{username}/smoltrace-{domain}-tasks-v{version}`
+                  - Examples: `kshitij/smoltrace-finance-tasks`, `kshitij/smoltrace-healthcare-tasks-v2`
+                - `hf_token` (str, required): HuggingFace API token with write permissions
+                - `private` (bool): Whether to create a private repository (default: False)
+
+                **Returns**: JSON object with upload status, repository URL, and dataset information
+
+                **Validation**:
+                - ✅ Checks SMOLTRACE naming convention (`smoltrace-` prefix required)
+                - ✅ Validates all tasks have required fields (id, prompt, expected_tool, difficulty, agent_type)
+                - ✅ Verifies HuggingFace token has write permissions
+                - ✅ Handles repository creation if it doesn't exist
+
+                **Workflow**:
+                1. Generate synthetic dataset using `generate_synthetic_dataset`
+                2. Extract the `tasks` array from the response JSON
+                3. Convert tasks array to JSON string
+                4. Call `push_dataset_to_hub` with the JSON string and desired repo name
+                5. Share the dataset URL with your team or use in SMOLTRACE evaluations
+
+                **Example Integration**:
+                ```python
+                # Step 1: Generate dataset
+                result = generate_synthetic_dataset(
+                    domain="finance",
+                    tool_names="get_stock_price,calculate_roi,fetch_company_info",
+                    num_tasks=50
+                )
+
+                # Step 2: Extract tasks
+                import json
+                data = json.loads(result)
+                tasks_json = json.dumps(data["tasks"])
+
+                # Step 3: Push to HuggingFace
+                push_result = push_dataset_to_hub(
+                    dataset_json=tasks_json,
+                    repo_name="your-username/smoltrace-finance-tasks",
+                    hf_token="hf_xxx",
+                    private=False
+                )
+                ```
+
+                ---
+
                 ## MCP Integration
 
                 This Gradio app is MCP-enabled. When deployed to HuggingFace Spaces, it can be accessed via MCP clients.
@@ -854,8 +1144,8 @@ def create_gradio_ui():
 
                 ### What's Exposed via MCP:
 
-                #### 5 MCP Tools (AI-Powered)
-                The five tools above (`analyze_leaderboard`, `debug_trace`, `estimate_cost`, `compare_runs`, `get_dataset`)
+                #### 7 MCP Tools (AI-Powered)
+                The seven tools above (`analyze_leaderboard`, `debug_trace`, `estimate_cost`, `compare_runs`, `get_dataset`, `generate_synthetic_dataset`, `push_dataset_to_hub`)
                 are automatically exposed as MCP tools and can be called from any MCP client.
 
                 #### 3 MCP Resources (Data Access)
@@ -891,14 +1181,60 @@ def create_gradio_ui():
     return demo
 
 if __name__ == "__main__":
-    # Create Gradio interface
-    demo = create_gradio_ui()
+    logger.info("=" * 70)
+    logger.info("TraceMind MCP Server - HuggingFace Space (Track 1)")
+    logger.info("=" * 70)
+    logger.info("MCP Server: TraceMind Agent Evaluation Platform v1.0.0")
+    logger.info("Protocol: Model Context Protocol (MCP)")
+    logger.info("Transport: Gradio Native MCP Support (SSE)")
+    logger.info("MCP Endpoint: https://kshitijthakkar-tracemind-mcp-server.hf.space/gradio_api/mcp/")
+    logger.info("=" * 70)
+    logger.info("Features:")
+    logger.info("  ✓ 7 AI-Powered Tools (Leaderboard + Trace + Cost + Dataset)")
+    logger.info("  ✓ 3 Real-Time Resources (leaderboard, trace, cost data)")
+    logger.info("  ✓ 3 Prompt Templates (analysis, debug, optimization)")
+    logger.info("  ✓ Google Gemini 2.5 Pro - Intelligent Analysis")
+    logger.info("  ✓ HuggingFace Dataset Integration")
+    logger.info("  ✓ SMOLTRACE Format Support")
+    logger.info("  ✓ Synthetic Dataset Generation")
+    logger.info("=" * 70)
+    logger.info("Tool Categories:")
+    logger.info("  📊 Analysis: analyze_leaderboard, compare_runs")
+    logger.info("  🐛 Debugging: debug_trace")
+    logger.info("  💰 Cost: estimate_cost")
+    logger.info("  📦 Data: get_dataset")
+    logger.info("  🧪 Generation: generate_synthetic_dataset, push_dataset_to_hub")
+    logger.info("=" * 70)
+    logger.info("Compatible Clients:")
+    logger.info("  • Claude Desktop")
+    logger.info("  • Continue.dev (VS Code)")
+    logger.info("  • Cline (VS Code)")
+    logger.info("  • Any MCP-compatible client")
+    logger.info("=" * 70)
+    logger.info("How to Connect (Claude Desktop/HF MCP Client):")
+    logger.info("  1. Go to https://huggingface.co/settings/mcp")
+    logger.info("  2. Add Space: kshitijthakkar-tracemind-mcp-server")
+    logger.info("  3. Start using TraceMind tools in your MCP client!")
+    logger.info("=" * 70)
+    logger.info("Starting Gradio UI + MCP Server on 0.0.0.0:7860...")
+    logger.info("Waiting for connections...")
+    logger.info("=" * 70)
 
-    # Launch with MCP server enabled
-    # share=True creates a temporary public HTTPS URL for testing with Claude Code
-    demo.launch(
-        server_name="0.0.0.0",
-        server_port=7860,
-        #share=True,  # Creates temporary HTTPS URL (e.g., https://abc123.gradio.live)
-        mcp_server=True  # Enable MCP server functionality
-    )
+    try:
+        # Create Gradio interface
+        demo = create_gradio_ui()
+
+        # Launch with MCP server enabled
+        demo.launch(
+            server_name="0.0.0.0",
+            server_port=7860,
+            mcp_server=True  # Enable MCP server functionality
+        )
+
+    except Exception as e:
+        logger.error(f"Failed to start server: {e}")
+        logger.error("Check that:")
+        logger.error("  1. GEMINI_API_KEY environment variable is set")
+        logger.error("  2. Port 7860 is available")
+        logger.error("  3. All dependencies are installed")
+        raise

@@ -12,13 +12,13 @@ import json
 class GeminiClient:
     """Client for Google Gemini API"""
 
-    def __init__(self, api_key: Optional[str] = None, model_name: str = "gemini-2.5-flash"):
+    def __init__(self, api_key: Optional[str] = None, model_name: str = "gemini-2.5-flash-lite"):
         """
         Initialize Gemini client
 
         Args:
             api_key: Gemini API key (defaults to GEMINI_API_KEY env var)
-            model_name: Model to use (default: gemini-2.5-flash, can also use gemini-2.5-flash-lite)
+            model_name: Model to use (default: gemini-2.5-flash-lite, can also use gemini-2.5-flash)
         """
         self.api_key = api_key or os.getenv("GEMINI_API_KEY")
         if not self.api_key:

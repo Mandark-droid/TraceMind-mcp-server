@@ -1,14 +1,34 @@
 """
-MCP Tool Implementations for TraceMind
+MCP Tool Implementations for TraceMind MCP Server
 
-Implements:
-- 5 MCP Tools: analyze_leaderboard, debug_trace, estimate_cost, compare_runs, get_dataset
-- 3 MCP Resources: leaderboard data, trace data, cost data
-- 3 MCP Prompts: analysis prompts, debug prompts, optimization prompts
+This module implements 13 MCP components (7 Tools + 3 Resources + 3 Prompts) for
+AI-powered agent evaluation analysis.
 
 With Gradio's native MCP support (mcp_server=True), these are automatically
 exposed based on decorators (@gr.mcp.tool, @gr.mcp.resource, @gr.mcp.prompt),
 docstrings, and type hints.
+
+🛠️ Tools (7 AI-Powered):
+    📊 analyze_leaderboard - Get AI insights from evaluation leaderboard data
+    🐛 debug_trace - Debug agent execution traces with AI assistance
+    💰 estimate_cost - Predict evaluation costs with AI recommendations
+    ⚖️ compare_runs - Compare two evaluation runs with AI analysis
+    📦 get_dataset - Load SMOLTRACE datasets as JSON for flexible analysis
+    🧪 generate_synthetic_dataset - Create domain-specific test datasets
+    📤 push_dataset_to_hub - Upload datasets to HuggingFace Hub
+
+📦 Resources (3 Data Access):
+    leaderboard://{repo} - Raw leaderboard data in JSON format
+    trace://{trace_id}/{repo} - Raw OpenTelemetry trace data
+    cost://model/{model_name} - Model pricing and hardware cost data
+
+📝 Prompts (3 Templates):
+    analysis_prompt - Standardized templates for analysis requests
+    debug_prompt - Standardized templates for debugging scenarios
+    optimization_prompt - Standardized templates for optimization goals
+
+All AI analysis powered by Google Gemini 2.5 Pro.
+Track 1: Building MCP Servers - Enterprise Category
 """
 
 import os
@@ -1114,3 +1134,475 @@ def optimization_prompt(
 
     template = templates.get(optimization_goal, {}).get(constraints, templates["cost"]["maintain_quality"])
     return template
+
+
+# ========================================
+# NEW TOOLS: Synthetic Dataset Generation
+# ========================================
+
+@gr.mcp.tool()
+async def generate_synthetic_dataset(
+    domain: str,
+    tool_names: str,
+    num_tasks: int = 10,
+    difficulty_distribution: str = "balanced",
+    agent_type: str = "both"
+) -> str:
+    """
+    Generate domain-specific synthetic test datasets for SMOLTRACE evaluations using AI.
+
+    This tool uses Google Gemini 2.5 Pro to create realistic, domain-specific evaluation
+    tasks that follow the SMOLTRACE task dataset format. Perfect for creating custom
+    benchmarks when standard datasets don't fit your use case.
+
+    **🚀 Batched Generation for Scale**:
+    - Requests >20 tasks are automatically split into parallel batches
+    - Utilizes Gemini's large context window efficiently
+    - Supports up to 100 tasks with 120s timeout per batch
+    - Example: 100 tasks = 5 parallel batches (20 tasks each)
+
+    **Enterprise Use Case**: Quickly create evaluation datasets for:
+    - Custom tools and APIs your agents use
+    - Industry-specific domains (finance, healthcare, legal, manufacturing, etc.)
+    - Internal workflows and business processes
+    - Specialized agent capabilities
+
+    **Security**: Requires GEMINI_API_KEY environment variable.
+
+    Args:
+        domain (str): The domain for synthetic tasks (e.g., "finance", "healthcare", "travel", "ecommerce", "customer_support")
+        tool_names (str): Comma-separated list of tool names to include (e.g., "get_weather,search_web,calculator")
+        num_tasks (int): Number of synthetic tasks to generate. Must be between 5 and 100. Default: 10
+                        - 5-20 tasks: Single batch (fast, ~30-60s)
+                        - 21-100 tasks: Multiple parallel batches (slower, ~60-120s per batch)
+        difficulty_distribution (str): How to distribute task difficulty. Options: "balanced" (40% easy, 40% medium, 20% hard), "easy_only", "medium_only", "hard_only", "progressive" (50% easy, 30% medium, 20% hard). Default: "balanced"
+        agent_type (str): Target agent type for tasks. Options: "tool" (ToolCallingAgent), "code" (CodeAgent), "both" (50/50 mix). Default: "both"
+
+    Returns:
+        str: JSON-formatted response with dataset_info (including batch statistics), tasks array (SMOLTRACE format), and usage_instructions
+    """
+    try:
+        # Initialize Gemini client
+        gemini_client = GeminiClient()
+
+        # Validate inputs
+        if num_tasks < 5 or num_tasks > 100:
+            return json.dumps({
+                "error": "num_tasks must be between 5 and 100",
+                "num_tasks_provided": num_tasks
+            }, indent=2)
+
+        # Parse tool names
+        tools = [tool.strip() for tool in tool_names.split(",") if tool.strip()]
+        if len(tools) == 0:
+            return json.dumps({
+                "error": "At least one tool name must be provided",
+                "tool_names_provided": tool_names
+            }, indent=2)
+
+        # Calculate distributions
+        difficulty_counts = _calculate_difficulty_distribution(num_tasks, difficulty_distribution)
+        agent_type_counts = _calculate_agent_type_distribution(num_tasks, agent_type)
+
+        # Create generation prompt
+        generation_prompt = f"""You are an expert at creating synthetic evaluation datasets for AI agents.
+
+Generate {num_tasks} synthetic test tasks for the **{domain}** domain following the SMOLTRACE task format.
+
+**Available Tools**: {", ".join(tools)}
+
+**Difficulty Distribution**:
+- Easy ({difficulty_counts['easy']} tasks): Single tool call, straightforward input, clear expected output
+- Medium ({difficulty_counts['medium']} tasks): Multiple tool calls OR complex input parsing OR conditional logic
+- Hard ({difficulty_counts['hard']} tasks): Multiple tools, complex reasoning, edge cases, error handling
+
+**Agent Type Distribution**:
+- Tool Agent ({agent_type_counts['tool']} tasks): Uses ToolCallingAgent - declarative tool calling
+- Code Agent ({agent_type_counts['code']} tasks): Uses CodeAgent - writes Python code with tools
+
+**SMOLTRACE Task Format** (required structure):
+```json
+{{
+  "id": "string - unique identifier like '{domain.lower()}_{{tool}}_{{number}}'",
+  "prompt": "string - clear, specific task description",
+  "expected_tool": "string - the tool name that should be used",
+  "expected_tool_calls": "integer - how many times the tool should be called (optional, default 1)",
+  "difficulty": "string - 'easy', 'medium', or 'hard'",
+  "agent_type": "string - 'tool' or 'code'",
+  "expected_keywords": "array of strings - keywords expected in response (optional)"
+}}
+```
+
+**Generation Guidelines**:
+1. **Domain Specificity**: Make tasks realistic and specific to the {domain} domain
+2. **Tool Usage**: Ensure each task requires using one of: {", ".join(tools)}
+3. **Prompt Quality**: Write clear, unambiguous prompts that an agent can execute
+4. **Expected Keywords**: Include 2-4 expected keywords for validation (optional but recommended)
+5. **Variety**: Vary the tasks to cover different aspects of the domain
+
+**IMPORTANT**: Return ONLY a valid JSON array of tasks. No explanatory text, no markdown formatting, no code blocks. Just the raw JSON array starting with [ and ending with ].
+
+Generate exactly {num_tasks} tasks:"""
+
+        print(f"[GENERATE_SYNTHETIC_DATASET] Generating {num_tasks} tasks for domain '{domain}'...")
+        print(f"[GENERATE_SYNTHETIC_DATASET] Tools: {', '.join(tools)}")
+
+        # Import required modules
+        import asyncio
+        import google.generativeai as genai
+
+        # Determine batching strategy
+        # Gemini can handle ~20 tasks per call with 8192 token output limit
+        TASKS_PER_BATCH = 20
+        num_batches = (num_tasks + TASKS_PER_BATCH - 1) // TASKS_PER_BATCH  # Ceiling division
+
+        if num_batches > 1:
+            print(f"[GENERATE_SYNTHETIC_DATASET] Large request detected. Splitting into {num_batches} parallel batches...")
+
+        # Create batch generation tasks
+        async def generate_batch(batch_num: int, batch_size: int, batch_difficulty: dict, batch_agent_type: dict):
+            """Generate a single batch of tasks"""
+            batch_prompt = f"""You are an expert at creating synthetic evaluation datasets for AI agents.
+
+Generate {batch_size} synthetic test tasks for the **{domain}** domain following the SMOLTRACE task format.
+
+**Available Tools**: {", ".join(tools)}
+
+**Difficulty Distribution for this batch**:
+- Easy ({batch_difficulty['easy']} tasks): Single tool call, straightforward input, clear expected output
+- Medium ({batch_difficulty['medium']} tasks): Multiple tool calls OR complex input parsing OR conditional logic
+- Hard ({batch_difficulty['hard']} tasks): Multiple tools, complex reasoning, edge cases, error handling
+
+**Agent Type Distribution for this batch**:
+- Tool Agent ({batch_agent_type['tool']} tasks): Uses ToolCallingAgent - declarative tool calling
+- Code Agent ({batch_agent_type['code']} tasks): Uses CodeAgent - writes Python code with tools
+
+**SMOLTRACE Task Format** (required structure):
+```json
+{{
+  "id": "string - unique identifier like '{domain.lower()}_{{tool}}_batch{batch_num}_{{number}}'",
+  "prompt": "string - clear, specific task description",
+  "expected_tool": "string - the tool name that should be used",
+  "expected_tool_calls": "integer - how many times the tool should be called (optional, default 1)",
+  "difficulty": "string - 'easy', 'medium', or 'hard'",
+  "agent_type": "string - 'tool' or 'code'",
+  "expected_keywords": "array of strings - keywords expected in response (optional)"
+}}
+```
+
+**Generation Guidelines**:
+1. **Domain Specificity**: Make tasks realistic and specific to the {domain} domain
+2. **Tool Usage**: Ensure each task requires using one of: {", ".join(tools)}
+3. **Prompt Quality**: Write clear, unambiguous prompts that an agent can execute
+4. **Expected Keywords**: Include 2-4 expected keywords for validation (optional but recommended)
+5. **Variety**: Vary the tasks to cover different aspects of the domain
+6. **Unique IDs**: Include 'batch{batch_num}' in task IDs to ensure uniqueness across batches
+
+**IMPORTANT**: Return ONLY a valid JSON array of tasks. No explanatory text, no markdown formatting, no code blocks. Just the raw JSON array starting with [ and ending with ].
+
+Generate exactly {batch_size} tasks:"""
+
+            generation_config = {
+                "temperature": 0.8,  # Higher for creativity and diversity
+                "top_p": 0.95,
+                "top_k": 40,
+                "max_output_tokens": 8192,
+            }
+
+            try:
+                response = await asyncio.wait_for(
+                    gemini_client.model.generate_content_async(
+                        batch_prompt,
+                        generation_config=generation_config
+                    ),
+                    timeout=120.0  # 120 seconds per batch for larger datasets
+                )
+                return response.text, None
+            except Exception as e:
+                return None, str(e)
+
+        # Split difficulty and agent type distributions across batches
+        def split_distribution(total_counts: dict, num_batches: int, batch_num: int, remaining_tasks: int):
+            """Split distribution counts across batches fairly"""
+            batch_counts = {}
+            for key, total in total_counts.items():
+                # Calculate fair share for this batch
+                base_share = total // num_batches
+                extra = 1 if batch_num < (total % num_batches) else 0
+                batch_counts[key] = min(base_share + extra, remaining_tasks)
+            return batch_counts
+
+        # Generate all batches in parallel
+        batch_tasks = []
+        remaining_tasks = num_tasks
+
+        for batch_num in range(num_batches):
+            batch_size = min(TASKS_PER_BATCH, remaining_tasks)
+
+            # Calculate distributions for this batch
+            batch_difficulty = split_distribution(difficulty_counts, num_batches, batch_num, batch_size)
+            batch_agent_type = split_distribution(agent_type_counts, num_batches, batch_num, batch_size)
+
+            batch_tasks.append(generate_batch(batch_num, batch_size, batch_difficulty, batch_agent_type))
+            remaining_tasks -= batch_size
+
+        print(f"[GENERATE_SYNTHETIC_DATASET] Executing {num_batches} parallel Gemini API calls...")
+
+        # Execute all batches in parallel
+        batch_results = await asyncio.gather(*batch_tasks)
+
+        # Combine and validate results
+        all_tasks = []
+        errors = []
+
+        for batch_num, (response_text, error) in enumerate(batch_results):
+            if error:
+                errors.append(f"Batch {batch_num} failed: {error}")
+                continue
+
+            try:
+                # Clean response (remove markdown if present)
+                cleaned_response = response_text.strip()
+                if cleaned_response.startswith("```"):
+                    import re
+                    match = re.search(r'```(?:json)?\s*\n(.*?)\n```', cleaned_response, re.DOTALL)
+                    if match:
+                        cleaned_response = match.group(1)
+
+                # Parse JSON
+                batch_tasks_parsed = json.loads(cleaned_response)
+
+                if not isinstance(batch_tasks_parsed, list):
+                    errors.append(f"Batch {batch_num} did not return a JSON array")
+                    continue
+
+                all_tasks.extend(batch_tasks_parsed)
+
+            except json.JSONDecodeError as e:
+                errors.append(f"Batch {batch_num} JSON parsing failed: {str(e)}")
+
+        # Check if we got enough tasks
+        if len(all_tasks) == 0:
+            return json.dumps({
+                "error": "All batches failed to generate tasks",
+                "batch_errors": errors,
+                "suggestion": "Check GEMINI_API_KEY and try again"
+            }, indent=2)
+
+        if errors:
+            print(f"[GENERATE_SYNTHETIC_DATASET] Warning: Some batches failed: {errors}")
+
+        print(f"[GENERATE_SYNTHETIC_DATASET] Successfully generated {len(all_tasks)} tasks across {num_batches} batch(es)")
+
+        # Validate required fields for all tasks
+        synthetic_tasks = all_tasks
+        required_fields = ["id", "prompt", "expected_tool", "difficulty", "agent_type"]
+        for i, task in enumerate(synthetic_tasks):
+            missing_fields = [field for field in required_fields if field not in task]
+            if missing_fields:
+                return json.dumps({
+                    "error": f"Task {i} is missing required fields: {missing_fields}",
+                    "task": task
+                }, indent=2)
+
+        # Return formatted dataset with metadata
+        result = {
+            "dataset_info": {
+                "domain": domain,
+                "tools": tools,
+                "num_tasks_requested": num_tasks,
+                "num_tasks_generated": len(synthetic_tasks),
+                "num_batches": num_batches,
+                "batches_succeeded": num_batches - len(errors),
+                "batches_failed": len(errors) if errors else 0,
+                "batch_errors": errors if errors else None,
+                "difficulty_distribution": difficulty_counts,
+                "agent_type_distribution": agent_type_counts,
+                "generated_at": datetime.now().isoformat(),
+                "smoltrace_naming_convention": f"{{username}}/smoltrace-{domain.lower()}-tasks",
+                "warning": f"⚠️ {len(errors)} batch(es) failed. Generated {len(synthetic_tasks)}/{num_tasks} tasks." if errors else None
+            },
+            "tasks": synthetic_tasks,
+            "usage_instructions": {
+                "format": "SMOLTRACE task dataset format",
+                "naming_convention": f"Follow SMOLTRACE naming: {{username}}/smoltrace-{domain.lower()}-tasks or {{username}}/smoltrace-{domain.lower()}-tasks-v1 for versioning",
+                "how_to_upload": [
+                    "Option 1: Use the push_dataset_to_hub tool in this MCP server",
+                    "Option 2: Manual upload with Python code (see example_code below)"
+                ],
+                "example_code": f"""from datasets import Dataset
+
+# Extract tasks from this response
+tasks = result["tasks"]
+
+# Create and push to HuggingFace (following SMOLTRACE naming convention)
+dataset = Dataset.from_list(tasks)
+dataset.push_to_hub("your-username/smoltrace-{domain.lower()}-tasks")
+
+# Use in SMOLTRACE evaluation
+# smoltrace-eval --model openai/gpt-4 --dataset-name your-username/smoltrace-{domain.lower()}-tasks"""
+            }
+        }
+
+        return json.dumps(result, indent=2, default=str)
+
+    except Exception as e:
+        return json.dumps({
+            "error": f"Failed to generate synthetic dataset: {str(e)}",
+            "domain": domain,
+            "tools": tool_names
+        }, indent=2)
+
+
+@gr.mcp.tool()
+async def push_dataset_to_hub(
+    dataset_json: str,
+    repo_name: str,
+    hf_token: str,
+    private: bool = False
+) -> str:
+    """
+    Push a generated synthetic dataset to HuggingFace Hub.
+
+    This tool uploads datasets created by generate_synthetic_dataset (or any SMOLTRACE-format
+    dataset) to HuggingFace Hub, making them ready for use in SMOLTRACE evaluations.
+
+    **Naming Convention**: Repo name should follow SMOLTRACE convention:
+    - Format: {username}/smoltrace-{domain}-tasks or {username}/smoltrace-{domain}-tasks-v{version}
+    - Examples: "mycompany/smoltrace-finance-tasks", "alice/smoltrace-healthcare-tasks-v2"
+
+    **Security**: Requires valid HuggingFace token with write permissions.
+
+    Args:
+        dataset_json (str): JSON string containing the tasks array (from generate_synthetic_dataset output, use the "tasks" field)
+        repo_name (str): HuggingFace repository name following SMOLTRACE naming: {username}/smoltrace-{domain}-tasks
+        hf_token (str): HuggingFace API token with write permissions (get from https://huggingface.co/settings/tokens)
+        private (bool): Whether to create a private dataset. Default: False (public)
+
+    Returns:
+        str: JSON response with upload status, dataset URL, and next steps
+    """
+    try:
+        from huggingface_hub import HfApi
+
+        # Validate repo name follows SMOLTRACE convention
+        if "smoltrace-" not in repo_name and "-tasks" not in repo_name:
+            return json.dumps({
+                "warning": "Repository name doesn't follow SMOLTRACE naming convention",
+                "expected_format": "{username}/smoltrace-{domain}-tasks or {username}/smoltrace-{domain}-tasks-v{version}",
+                "your_repo_name": repo_name,
+                "recommendation": "Consider renaming to follow the convention for consistency with SMOLTRACE ecosystem",
+                "proceeding": "Continuing with upload..."
+            }, indent=2)
+
+        # Parse dataset JSON
+        try:
+            tasks = json.loads(dataset_json)
+            if not isinstance(tasks, list):
+                return json.dumps({
+                    "error": "dataset_json must be a JSON array of tasks",
+                    "type_received": str(type(tasks))
+                }, indent=2)
+        except json.JSONDecodeError as e:
+            return json.dumps({
+                "error": "Invalid JSON in dataset_json",
+                "parse_error": str(e)
+            }, indent=2)
+
+        # Validate task structure
+        required_fields = ["id", "prompt", "expected_tool", "difficulty", "agent_type"]
+        for i, task in enumerate(tasks):
+            missing_fields = [field for field in required_fields if field not in task]
+            if missing_fields:
+                return json.dumps({
+                    "error": f"Task {i} is missing required SMOLTRACE fields: {missing_fields}",
+                    "task": task
+                }, indent=2)
+
+        # Create dataset and push to hub
+        from datasets import Dataset
+
+        dataset = Dataset.from_list(tasks)
+
+        print(f"[PUSH_DATASET_TO_HUB] Uploading {len(tasks)} tasks to {repo_name}...")
+
+        # Push to hub
+        dataset.push_to_hub(
+            repo_name,
+            token=hf_token,
+            private=private
+        )
+
+        # Return success response
+        result = {
+            "status": "success",
+            "message": f"Successfully uploaded {len(tasks)} tasks to HuggingFace Hub",
+            "dataset_info": {
+                "repository": repo_name,
+                "num_tasks": len(tasks),
+                "visibility": "private" if private else "public",
+                "dataset_url": f"https://huggingface.co/datasets/{repo_name}"
+            },
+            "next_steps": {
+                "view_dataset": f"https://huggingface.co/datasets/{repo_name}",
+                "use_in_smoltrace": f"smoltrace-eval --model openai/gpt-4 --dataset-name {repo_name}",
+                "share_with_team": f"Team members can access at https://huggingface.co/datasets/{repo_name}" if not private else "Dataset is private - share access via HuggingFace settings"
+            }
+        }
+
+        return json.dumps(result, indent=2)
+
+    except ImportError:
+        return json.dumps({
+            "error": "Required packages not installed",
+            "missing_packages": "datasets, huggingface_hub",
+            "install_command": "pip install datasets huggingface_hub"
+        }, indent=2)
+    except Exception as e:
+        return json.dumps({
+            "error": f"Failed to push dataset to hub: {str(e)}",
+            "repo_name": repo_name
+        }, indent=2)
+
+
+# Helper functions for synthetic dataset generation
+def _calculate_difficulty_distribution(num_tasks: int, difficulty_distribution: str) -> dict:
+    """Calculate how many tasks of each difficulty to generate."""
+    if difficulty_distribution == "balanced":
+        easy = int(num_tasks * 0.4)
+        medium = int(num_tasks * 0.4)
+        hard = num_tasks - easy - medium
+    elif difficulty_distribution == "easy_only":
+        easy, medium, hard = num_tasks, 0, 0
+    elif difficulty_distribution == "medium_only":
+        easy, medium, hard = 0, num_tasks, 0
+    elif difficulty_distribution == "hard_only":
+        easy, medium, hard = 0, 0, num_tasks
+    elif difficulty_distribution == "progressive":
+        easy = int(num_tasks * 0.5)
+        medium = int(num_tasks * 0.3)
+        hard = num_tasks - easy - medium
+    else:
+        # Default to balanced
+        easy = int(num_tasks * 0.4)
+        medium = int(num_tasks * 0.4)
+        hard = num_tasks - easy - medium
+
+    return {"easy": easy, "medium": medium, "hard": hard}
+
+
+def _calculate_agent_type_distribution(num_tasks: int, agent_type: str) -> dict:
+    """Calculate how many tasks for each agent type to generate."""
+    if agent_type == "tool":
+        return {"tool": num_tasks, "code": 0}
+    elif agent_type == "code":
+        return {"tool": 0, "code": num_tasks}
+    elif agent_type == "both":
+        tool_count = num_tasks // 2
+        code_count = num_tasks - tool_count
+        return {"tool": tool_count, "code": code_count}
+    else:
+        # Default to both
+        tool_count = num_tasks // 2
+        code_count = num_tasks - tool_count
+        return {"tool": tool_count, "code": code_count}

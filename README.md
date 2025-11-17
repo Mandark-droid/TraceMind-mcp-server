@@ -5,7 +5,7 @@ colorFrom: blue
 colorTo: purple
 sdk: docker
 app_port: 7860
-pinned: false
+pinned: true
 license: agpl-3.0
 short_description: MCP server for agent evaluation with Gemini 2.5 Pro
 tags:
@@ -32,13 +32,14 @@ tags:
 
 TraceMind MCP Server is a Gradio-based MCP (Model Context Protocol) server that provides a complete MCP implementation with:
 
-### 🛠️ **6 AI-Powered Tools**
+### 🛠️ **7 AI-Powered Tools**
 1. **📊 analyze_leaderboard**: Generate insights from evaluation leaderboard data
 2. **🐛 debug_trace**: Debug specific agent execution traces using OpenTelemetry data
 3. **💰 estimate_cost**: Predict evaluation costs before running
 4. **⚖️ compare_runs**: Compare two evaluation runs with AI-powered analysis
-5. **🔍 analyze_results**: Deep dive into test results with optimization recommendations
-6. **📦 get_dataset**: Load SMOLTRACE datasets (smoltrace-* prefix only) as JSON for flexible analysis
+5. **📦 get_dataset**: Load SMOLTRACE datasets (smoltrace-* prefix only) as JSON for flexible analysis
+6. **🧪 generate_synthetic_dataset**: Create domain-specific test datasets for SMOLTRACE evaluations (supports up to 100 tasks with parallel batched generation)
+7. **📤 push_dataset_to_hub**: Upload generated datasets to HuggingFace Hub
 
 ### 📦 **3 Data Resources**
 1. **leaderboard data**: Direct JSON access to evaluation results
@@ -93,11 +94,11 @@ All analysis is powered by **Google Gemini 2.5 Pro** for intelligent, context-aw
 - ✅ **MCP Standard Compliant**: Built with Gradio's native MCP support (`@gr.mcp.*` decorators)
 - ✅ **Production-Ready**: Deployable to HuggingFace Spaces with SSE transport
 - ✅ **Testing Interface**: Beautiful Gradio UI for testing all components
-- ✅ **Enterprise Focus**: Cost optimization, debugging, and decision support
+- ✅ **Enterprise Focus**: Cost optimization, debugging, decision support, and custom dataset generation
 - ✅ **Google Gemini Powered**: Leverages Gemini 2.5 Pro for intelligent analysis
-- ✅ **11 Total Components**: 5 Tools + 3 Resources + 3 Prompts
+- ✅ **13 Total Components**: 7 Tools + 3 Resources + 3 Prompts
 
-### 🛠️ Five Production-Ready Tools
+### 🛠️ Seven Production-Ready Tools
 
 #### 1. analyze_leaderboard
 
