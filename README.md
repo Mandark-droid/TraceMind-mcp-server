@@ -26,7 +26,8 @@ tags:
 **AI-Powered Analysis Tools for Agent Evaluation Data**
 
 [![MCP's 1st Birthday Hackathon](https://img.shields.io/badge/MCP%27s%201st%20Birthday-Hackathon-blue)](https://github.com/modelcontextprotocol)
-[![Track](https://img.shields.io/badge/Track-Building%20MCP%20(Enterprise)-green)](https://github.com/modelcontextprotocol/hackathon)
+[![Track 1](https://img.shields.io/badge/Track-Building%20MCP%20(Enterprise)-blue)](https://github.com/modelcontextprotocol/hackathon)
+[![HF Space](https://img.shields.io/badge/HuggingFace-TraceMind--MCP--Server-yellow?logo=huggingface)](https://huggingface.co/spaces/MCP-1st-Birthday/TraceMind-mcp-server)
 [![Google Gemini](https://img.shields.io/badge/Powered%20by-Google%20Gemini%202.5%20Pro-orange)](https://ai.google.dev/)
 
 > **🎯 Track 1 Submission**: Building MCP (Enterprise)
