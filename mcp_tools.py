@@ -344,14 +344,23 @@ async def estimate_cost(
             else:
                 model_cost = {"input_cost_per_token": 0, "output_cost_per_token": 0}  # Local model
 
-        # Estimate token usage per test
-        # Tool agent: ~200 tokens input, ~150 output
-        # Code agent: ~300 tokens input, ~400 output
-        # Both: ~400 tokens input, ~500 output
+        # Estimate token usage per test (based on real data from kshitijthakkar/smoltrace-results-20251117_104845)
+        # These are averages from actual agent evaluation runs
+        # Input/output split estimated at 60/40 based on typical agent patterns
+        # (agents have large context with system prompts, tool outputs, etc.)
         token_estimates = {
-            "tool": {"input": 200, "output": 150},
-            "code": {"input": 300, "output": 400},
-            "both": {"input": 400, "output": 500}
+            "tool": {
+                "input": 7577,    # 60% of 12,629 avg total tokens
+                "output": 5052    # 40% of 12,629 avg total tokens
+            },
+            "code": {
+                "input": 10321,   # 60% of 17,202 avg total tokens
+                "output": 6881    # 40% of 17,202 avg total tokens
+            },
+            "both": {
+                "input": 8900,    # Average of tool+code inputs
+                "output": 5933    # Average of tool+code outputs
+            }
         }
 
         tokens_per_test = token_estimates[agent_type]
