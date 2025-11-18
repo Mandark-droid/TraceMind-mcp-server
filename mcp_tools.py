@@ -275,9 +275,9 @@ async def estimate_cost(
         model (str): Model identifier in litellm format (e.g., "openai/gpt-4", "meta-llama/Llama-3.1-8B")
         agent_type (str): Type of agent capabilities to test. Options: "tool", "code", "both"
         num_tests (int): Number of test cases to run. Must be between 10 and 1000. Default: 100
-        hardware (str): Hardware type for HuggingFace Jobs. Options: "auto", "cpu", "gpu_a10", "gpu_h200". Default: "auto"
+        hardware (str): Hardware type for compute. Supports Modal (gpu_t4, gpu_a10, gpu_h200, etc.) and HuggingFace Jobs (cpu-basic, t4-small, a10g-small, a100-large, etc.). Default: "auto"
     Returns:
-        str: Markdown-formatted cost estimate with breakdown of LLM costs, HF Jobs costs, duration, CO2 emissions, and optimization tips
+        str: Markdown-formatted cost estimate with breakdown of LLM costs, compute costs, duration, CO2 emissions, and optimization tips
     """
     try:
         # Initialize Gemini client with provided key or from environment
@@ -301,11 +301,11 @@ async def estimate_cost(
 
         # Auto-select hardware
         if hardware == "auto":
-            hardware = "cpu" if is_api_model else "gpu_a10"
+            hardware = "cpu-basic" if is_api_model else "a10g-small"
 
-        # Modal compute costs (per second) - from Modal website
-        modal_compute_costs = {
-            # GPU Tasks
+        # Compute costs (per second) - Modal + HuggingFace Jobs
+        compute_costs = {
+            # Modal GPU Tasks (per second)
             "gpu_b200": 0.001736,      # Nvidia B200
             "gpu_h200": 0.001261,      # Nvidia H200
             "gpu_h100": 0.001097,      # Nvidia H100
@@ -315,10 +315,26 @@ async def estimate_cost(
             "gpu_a10": 0.000306,       # Nvidia A10
             "gpu_l4": 0.000222,        # Nvidia L4
             "gpu_t4": 0.000164,        # Nvidia T4
-            # CPU (per core)
+            # Modal CPU (per core)
             "cpu": 0.0000131,          # Physical core (2 vCPU equivalent)
-            # Memory (per GiB)
-            "memory": 0.00000222       # Per GiB
+
+            # HuggingFace Jobs (estimated per second based on typical hourly rates)
+            # Note: HF Jobs pricing varies, these are estimates
+            "cpu-basic": 0.0000167,    # ~$0.06/hour
+            "cpu-upgrade": 0.0000278,  # ~$0.10/hour
+            "t4-small": 0.000167,      # ~$0.60/hour
+            "t4-medium": 0.000278,     # ~$1.00/hour
+            "l4x1": 0.000250,          # ~$0.90/hour
+            "l4x4": 0.001000,          # ~$3.60/hour
+            "a10g-small": 0.000333,    # ~$1.20/hour
+            "a10g-large": 0.000556,    # ~$2.00/hour
+            "a10g-largex2": 0.001111,  # ~$4.00/hour
+            "a10g-largex4": 0.002222,  # ~$8.00/hour
+            "a100-large": 0.001389,    # ~$5.00/hour
+            # TPU (estimated)
+            "v5e-1x1": 0.000417,       # ~$1.50/hour
+            "v5e-2x2": 0.001667,       # ~$6.00/hour
+            "v5e-2x4": 0.003333        # ~$12.00/hour
         }
 
         # Get model costs from pricing database
@@ -380,12 +396,12 @@ async def estimate_cost(
 
         total_duration_seconds = duration_per_test * num_tests
 
-        # Calculate Modal compute costs (per second)
-        compute_rate_per_sec = modal_compute_costs.get(hardware, modal_compute_costs["cpu"])
+        # Calculate compute costs (per second)
+        compute_rate_per_sec = compute_costs.get(hardware, compute_costs.get("cpu-basic", 0.0000167))
 
-        # For CPU, estimate core usage (assume 2 cores for agent workload)
-        # For GPU, direct cost
-        if hardware == "cpu":
+        # For CPU-based hardware, estimate core usage (assume 2 cores for agent workload)
+        # For GPU/TPU, direct cost
+        if hardware in ["cpu", "cpu-basic", "cpu-upgrade"]:
             num_cores = 2  # Estimate 2 cores for typical agent workload
             total_compute_cost = total_duration_seconds * compute_rate_per_sec * num_cores
         else:
@@ -393,6 +409,7 @@ async def estimate_cost(
 
         # Estimate CO2 (rough estimates in kg per hour)
         co2_per_hour = {
+            # Modal
             "cpu": 0.05,
             "gpu_t4": 0.10,
             "gpu_l4": 0.12,
@@ -402,7 +419,22 @@ async def estimate_cost(
             "gpu_a100_80gb": 0.28,
             "gpu_h100": 0.30,
             "gpu_h200": 0.32,
-            "gpu_b200": 0.35
+            "gpu_b200": 0.35,
+            # HuggingFace Jobs
+            "cpu-basic": 0.03,
+            "cpu-upgrade": 0.04,
+            "t4-small": 0.08,
+            "t4-medium": 0.10,
+            "l4x1": 0.12,
+            "l4x4": 0.48,
+            "a10g-small": 0.13,
+            "a10g-large": 0.15,
+            "a10g-largex2": 0.30,
+            "a10g-largex4": 0.60,
+            "a100-large": 0.25,
+            "v5e-1x1": 0.18,
+            "v5e-2x2": 0.72,
+            "v5e-2x4": 1.44
         }
 
         total_co2_kg = (total_duration_seconds / 3600) * co2_per_hour.get(hardware, 0.05)
@@ -414,7 +446,7 @@ async def estimate_cost(
             "num_tests": num_tests,
             "hardware": hardware,
             "is_api_model": is_api_model,
-            "pricing_source": "genai_otel pricing database + Modal compute costs",
+            "pricing_source": "genai_otel pricing database + Modal/HF Jobs compute costs",
             "estimates": {
                 "llm_cost_usd": round(total_llm_cost, 6),
                 "llm_cost_per_test": round(llm_cost_per_test, 6),
