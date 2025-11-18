@@ -281,9 +281,21 @@ def create_gradio_ui():
                         )
                         cost_hardware = gr.Dropdown(
                             label="Hardware Type",
-                            choices=["auto", "cpu", "gpu_a10", "gpu_h200"],
+                            choices=[
+                                "auto",
+                                # Modal
+                                "cpu", "gpu_t4", "gpu_l4", "gpu_a10", "gpu_l40s",
+                                "gpu_a100", "gpu_a100_80gb", "gpu_h100", "gpu_h200", "gpu_b200",
+                                # HuggingFace Jobs
+                                "cpu-basic", "cpu-upgrade",
+                                "t4-small", "t4-medium",
+                                "l4x1", "l4x4",
+                                "a10g-small", "a10g-large", "a10g-largex2", "a10g-largex4",
+                                "a100-large",
+                                "v5e-1x1", "v5e-2x2", "v5e-2x4"
+                            ],
                             value="auto",
-                            info="'auto' will choose based on model type"
+                            info="Supports Modal and HuggingFace Jobs hardware. 'auto' selects cpu-basic (API) or a10g-small (local)."
                         )
                         cost_button = gr.Button("💰 Estimate", variant="primary")
 
