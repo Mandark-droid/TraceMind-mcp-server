@@ -282,6 +282,20 @@ async def estimate_cost(
     try:
         # Initialize Gemini client with provided key or from environment
         gemini_client = GeminiClient()
+
+        # Fetch LLM pricing from genai_otel project
+        import requests
+        pricing_url = "https://raw.githubusercontent.com/Mandark-droid/genai_otel_instrument/refs/heads/main/genai_otel/llm_pricing.json"
+
+        try:
+            response = requests.get(pricing_url, timeout=5)
+            response.raise_for_status()
+            llm_pricing_db = response.json()
+            print(f"[INFO] Loaded {len(llm_pricing_db)} models from pricing database")
+        except Exception as e:
+            print(f"[WARNING] Failed to load pricing database: {e}, using fallback")
+            llm_pricing_db = {}
+
         # Determine if API or local model
         is_api_model = any(provider in model.lower() for provider in ["openai", "anthropic", "google", "cohere"])
 
@@ -289,24 +303,46 @@ async def estimate_cost(
         if hardware == "auto":
             hardware = "cpu" if is_api_model else "gpu_a10"
 
-        # Cost data (simplified estimates)
-        llm_costs = {
-            "openai/gpt-4": {"input": 0.03, "output": 0.06},  # per 1K tokens
-            "openai/gpt-3.5-turbo": {"input": 0.0015, "output": 0.002},
-            "anthropic/claude-3-opus": {"input": 0.015, "output": 0.075},
-            "anthropic/claude-3-sonnet": {"input": 0.003, "output": 0.015},
-            "meta-llama/Llama-3.1-8B": {"input": 0, "output": 0},  # Local model
-            "default": {"input": 0.001, "output": 0.002}
+        # Modal compute costs (per second) - from Modal website
+        modal_compute_costs = {
+            # GPU Tasks
+            "gpu_b200": 0.001736,      # Nvidia B200
+            "gpu_h200": 0.001261,      # Nvidia H200
+            "gpu_h100": 0.001097,      # Nvidia H100
+            "gpu_a100_80gb": 0.000694, # Nvidia A100, 80 GB
+            "gpu_a100": 0.000583,      # Nvidia A100, 40 GB
+            "gpu_l40s": 0.000542,      # Nvidia L40S
+            "gpu_a10": 0.000306,       # Nvidia A10
+            "gpu_l4": 0.000222,        # Nvidia L4
+            "gpu_t4": 0.000164,        # Nvidia T4
+            # CPU (per core)
+            "cpu": 0.0000131,          # Physical core (2 vCPU equivalent)
+            # Memory (per GiB)
+            "memory": 0.00000222       # Per GiB
         }
 
-        hf_jobs_costs = {
-            "cpu": 0.60,  # per hour
-            "gpu_a10": 1.10,  # per hour
-            "gpu_h200": 4.50  # per hour
-        }
+        # Get model costs from pricing database
+        model_cost = None
 
-        # Get model costs
-        model_cost = llm_costs.get(model, llm_costs["default"])
+        # Try exact match first
+        if model in llm_pricing_db:
+            model_cost = llm_pricing_db[model]
+        else:
+            # Try without provider prefix (e.g., "gpt-4" instead of "openai/gpt-4")
+            model_name = model.split('/')[-1]
+            for key in llm_pricing_db:
+                if model_name in key or key in model_name:
+                    model_cost = llm_pricing_db[key]
+                    print(f"[INFO] Found pricing for {model} via fuzzy match: {key}")
+                    break
+
+        # Fallback to default if not found
+        if model_cost is None:
+            print(f"[WARNING] Model {model} not in pricing database, using default")
+            if is_api_model:
+                model_cost = {"input_cost_per_token": 0.000001, "output_cost_per_token": 0.000002}
+            else:
+                model_cost = {"input_cost_per_token": 0, "output_cost_per_token": 0}  # Local model
 
         # Estimate token usage per test
         # Tool agent: ~200 tokens input, ~150 output
@@ -320,10 +356,10 @@ async def estimate_cost(
 
         tokens_per_test = token_estimates[agent_type]
 
-        # Calculate LLM costs
+        # Calculate LLM costs (pricing is per token, not per 1K tokens)
         llm_cost_per_test = (
-            (tokens_per_test["input"] / 1000) * model_cost["input"] +
-            (tokens_per_test["output"] / 1000) * model_cost["output"]
+            tokens_per_test["input"] * model_cost.get("input_cost_per_token", 0) +
+            tokens_per_test["output"] * model_cost.get("output_cost_per_token", 0)
         )
         total_llm_cost = llm_cost_per_test * num_tests
 
@@ -333,20 +369,34 @@ async def estimate_cost(
         else:
             duration_per_test = 8.0  # Local models slower but depends on GPU
 
-        total_duration_hours = (duration_per_test * num_tests) / 3600
+        total_duration_seconds = duration_per_test * num_tests
 
-        # Calculate HF Jobs costs
-        jobs_hourly_rate = hf_jobs_costs.get(hardware, hf_jobs_costs["cpu"])
-        total_jobs_cost = total_duration_hours * jobs_hourly_rate
+        # Calculate Modal compute costs (per second)
+        compute_rate_per_sec = modal_compute_costs.get(hardware, modal_compute_costs["cpu"])
 
-        # Estimate CO2 (rough estimates)
+        # For CPU, estimate core usage (assume 2 cores for agent workload)
+        # For GPU, direct cost
+        if hardware == "cpu":
+            num_cores = 2  # Estimate 2 cores for typical agent workload
+            total_compute_cost = total_duration_seconds * compute_rate_per_sec * num_cores
+        else:
+            total_compute_cost = total_duration_seconds * compute_rate_per_sec
+
+        # Estimate CO2 (rough estimates in kg per hour)
         co2_per_hour = {
-            "cpu": 0.05,  # kg CO2
+            "cpu": 0.05,
+            "gpu_t4": 0.10,
+            "gpu_l4": 0.12,
             "gpu_a10": 0.15,
-            "gpu_h200": 0.30
+            "gpu_l40s": 0.20,
+            "gpu_a100": 0.25,
+            "gpu_a100_80gb": 0.28,
+            "gpu_h100": 0.30,
+            "gpu_h200": 0.32,
+            "gpu_b200": 0.35
         }
 
-        total_co2_kg = total_duration_hours * co2_per_hour.get(hardware, 0.05)
+        total_co2_kg = (total_duration_seconds / 3600) * co2_per_hour.get(hardware, 0.05)
 
         # Prepare estimate data
         estimate_data = {
@@ -355,15 +405,23 @@ async def estimate_cost(
             "num_tests": num_tests,
             "hardware": hardware,
             "is_api_model": is_api_model,
+            "pricing_source": "genai_otel pricing database + Modal compute costs",
             "estimates": {
-                "llm_cost_usd": round(total_llm_cost, 4),
-                "llm_cost_per_test": round(llm_cost_per_test, 4),
-                "jobs_cost_usd": round(total_jobs_cost, 4),
-                "total_cost_usd": round(total_llm_cost + total_jobs_cost, 4),
-                "duration_hours": round(total_duration_hours, 2),
+                "llm_cost_usd": round(total_llm_cost, 6),
+                "llm_cost_per_test": round(llm_cost_per_test, 6),
+                "compute_cost_usd": round(total_compute_cost, 6),
+                "total_cost_usd": round(total_llm_cost + total_compute_cost, 6),
+                "duration_seconds": round(total_duration_seconds, 2),
+                "duration_minutes": round(total_duration_seconds / 60, 2),
                 "duration_per_test_seconds": round(duration_per_test, 2),
-                "co2_emissions_kg": round(total_co2_kg, 3),
-                "tokens_per_test": tokens_per_test
+                "co2_emissions_kg": round(total_co2_kg, 4),
+                "tokens_per_test": tokens_per_test,
+                "compute_rate_per_second": compute_rate_per_sec
+            },
+            "model_pricing": {
+                "input_cost_per_token": model_cost.get("input_cost_per_token", 0),
+                "output_cost_per_token": model_cost.get("output_cost_per_token", 0),
+                "found_in_database": model in llm_pricing_db
             }
         }
 
