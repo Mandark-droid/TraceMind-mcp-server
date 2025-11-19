@@ -764,12 +764,19 @@ async def analyze_results(
         # Analyze failures
         failure_analysis = []
         if len(failed) > 0:
-            # Get sample of failures
-            failure_sample = failed.head(10)[
-                ['task_id', 'prompt', 'error', 'error_type', 'tool_called', 'expected_tool']
-            ].to_dict('records')
+            # Define which columns to include in failure sample
+            failure_columns = ['task_id', 'prompt']
 
-            # Count error types
+            # Add optional columns if they exist
+            optional_columns = ['error', 'error_type', 'tool_called', 'expected_tool']
+            for col in optional_columns:
+                if col in failed.columns:
+                    failure_columns.append(col)
+
+            # Get sample of failures with only existing columns
+            failure_sample = failed.head(10)[failure_columns].to_dict('records')
+
+            # Count error types if column exists
             if 'error_type' in failed.columns:
                 error_type_counts = failed['error_type'].value_counts().to_dict()
             else:
