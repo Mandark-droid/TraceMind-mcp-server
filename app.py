@@ -753,6 +753,15 @@ def create_gradio_ui():
                             value=False,
                             info="Private datasets are only visible to you"
                         )
+                        # Hidden field for prompt template (used by API calls from TraceMind-AI)
+                        push_prompt_template = gr.Textbox(
+                            label="Prompt Template (Optional)",
+                            placeholder="Leave empty if not using prompt template",
+                            info="YAML prompt template to include in dataset card",
+                            lines=5,
+                            visible=True,
+                            value=""
+                        )
                         push_button = gr.Button("📤 Push to HuggingFace Hub", variant="primary", size="lg")
 
                     with gr.Column():
@@ -789,7 +798,7 @@ def create_gradio_ui():
 
                 push_button.click(
                     fn=run_push_dataset,
-                    inputs=[push_dataset_json, push_repo_name, push_hf_token, push_private],
+                    inputs=[push_dataset_json, push_repo_name, push_hf_token, push_private, push_prompt_template],
                     outputs=[push_output]
                 )
 
