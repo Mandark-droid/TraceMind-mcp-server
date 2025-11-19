@@ -1769,13 +1769,15 @@ async def push_dataset_to_hub(
     dataset_json: str,
     repo_name: str,
     hf_token: str,
-    private: bool = False
+    private: bool = False,
+    prompt_template: str = None
 ) -> str:
     """
-    Push a generated synthetic dataset to HuggingFace Hub.
+    Push a generated synthetic dataset to HuggingFace Hub with optional prompt template.
 
     This tool uploads datasets created by generate_synthetic_dataset (or any SMOLTRACE-format
     dataset) to HuggingFace Hub, making them ready for use in SMOLTRACE evaluations.
+    Optionally includes a customized prompt template in the dataset card.
 
     **Naming Convention**: Repo name should follow SMOLTRACE convention:
     - Format: {username}/smoltrace-{domain}-tasks or {username}/smoltrace-{domain}-tasks-v{version}
@@ -1788,6 +1790,7 @@ async def push_dataset_to_hub(
         repo_name (str): HuggingFace repository name following SMOLTRACE naming: {username}/smoltrace-{domain}-tasks
         hf_token (str): HuggingFace API token with write permissions (get from https://huggingface.co/settings/tokens)
         private (bool): Whether to create a private dataset. Default: False (public)
+        prompt_template (str): Optional YAML prompt template to include in dataset card (from generate_prompt_template)
 
     Returns:
         str: JSON response with upload status, dataset URL, and next steps
@@ -1843,19 +1846,114 @@ async def push_dataset_to_hub(
             private=private
         )
 
+        # If prompt template provided, add it to the dataset card
+        if prompt_template and prompt_template.strip():
+            try:
+                print(f"[PUSH_DATASET_TO_HUB] Adding prompt template to dataset card...")
+
+                # Create enhanced README with prompt template
+                readme_content = f"""---
+tags:
+- smoltrace
+- synthetic-data
+- agent-evaluation
+- mcp-generated
+license: mit
+---
+
+# SMOLTRACE Synthetic Dataset
+
+This dataset was generated using the TraceMind MCP Server's synthetic data generation tools.
+
+## Dataset Info
+
+- **Tasks**: {len(tasks)}
+- **Format**: SMOLTRACE evaluation format
+- **Generated**: AI-powered synthetic task generation
+
+## Usage with SMOLTRACE
+
+```python
+from datasets import load_dataset
+
+# Load dataset
+dataset = load_dataset("{repo_name}")
+
+# Use with SMOLTRACE
+# smoltrace-eval --model openai/gpt-4 --dataset-name {repo_name}
+```
+
+## Prompt Template
+
+This dataset includes a customized agent prompt template optimized for the domain and tools used.
+
+### Template File
+
+Save the following as `prompt_template.yaml`:
+
+```yaml
+{prompt_template}
+```
+
+### Using the Template
+
+```python
+from smolagents import ToolCallingAgent  # or CodeAgent
+
+agent = ToolCallingAgent(
+    tools=[...],  # Your tools
+    model="openai/gpt-4",
+    system_prompt_path="prompt_template.yaml"
+)
+```
+
+## Dataset Structure
+
+Each task contains:
+- `id`: Unique task identifier
+- `prompt`: Task description
+- `expected_tool`: Tool the agent should use
+- `difficulty`: Task complexity (easy/medium/hard)
+- `agent_type`: Type of agent (tool/code)
+
+## Generated with TraceMind MCP Server
+
+🔗 [TraceMind MCP Server](https://huggingface.co/spaces/MCP-1st-Birthday/TraceMind-mcp-server)
+
+Part of the MCP's 1st Birthday Hackathon project.
+"""
+
+                # Upload README to dataset repository
+                api = HfApi()
+                api.upload_file(
+                    path_or_fileobj=readme_content.encode('utf-8'),
+                    path_in_repo="README.md",
+                    repo_id=repo_name,
+                    repo_type="dataset",
+                    token=hf_token
+                )
+
+                print(f"[PUSH_DATASET_TO_HUB] Prompt template added to dataset card successfully")
+
+            except Exception as readme_error:
+                print(f"[WARNING] Failed to add prompt template to README: {readme_error}")
+                # Don't fail the whole operation if README update fails
+
         # Return success response
         result = {
             "status": "success",
-            "message": f"Successfully uploaded {len(tasks)} tasks to HuggingFace Hub",
+            "message": f"Successfully uploaded {len(tasks)} tasks to HuggingFace Hub" + (" with prompt template" if prompt_template else ""),
             "dataset_info": {
                 "repository": repo_name,
                 "num_tasks": len(tasks),
                 "visibility": "private" if private else "public",
-                "dataset_url": f"https://huggingface.co/datasets/{repo_name}"
+                "dataset_url": f"https://huggingface.co/datasets/{repo_name}",
+                "includes_prompt_template": bool(prompt_template)
             },
             "next_steps": {
                 "view_dataset": f"https://huggingface.co/datasets/{repo_name}",
                 "use_in_smoltrace": f"smoltrace-eval --model openai/gpt-4 --dataset-name {repo_name}",
+                "use_prompt_template": "Check the README.md for the customized prompt template" if prompt_template else "Generate a prompt template using generate_prompt_template tool",
                 "share_with_team": f"Team members can access at https://huggingface.co/datasets/{repo_name}" if not private else "Dataset is private - share access via HuggingFace settings"
             }
         }

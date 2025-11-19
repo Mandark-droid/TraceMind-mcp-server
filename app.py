@@ -772,15 +772,16 @@ def create_gradio_ui():
                         ```
                         """)
 
-                async def run_push_dataset(dataset_json, repo_name, hf_token, private):
-                    """Push dataset to hub with async support."""
+                async def run_push_dataset(dataset_json, repo_name, hf_token, private, prompt_template=""):
+                    """Push dataset to hub with async support and optional prompt template."""
                     try:
                         import json
                         result = await push_dataset_to_hub(
                             dataset_json=dataset_json,
                             repo_name=repo_name,
                             hf_token=hf_token,
-                            private=private
+                            private=private,
+                            prompt_template=prompt_template if prompt_template else None
                         )
                         return json.loads(result)
                     except Exception as e:
