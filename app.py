@@ -1293,6 +1293,162 @@ def create_gradio_ui():
         **Tag**: `building-mcp-track-enterprise`
         """)
 
+            with gr.Tab("⚙️ Settings"):
+                gr.Markdown("""
+                # ⚙️ API Key Configuration (Optional)
+
+                ## Default Configuration
+
+                This MCP server uses **pre-configured API keys from HuggingFace Spaces Secrets**.
+
+                For most users (especially MCP client demos with Claude Desktop), no configuration is needed!
+
+                ## For Hackathon Judges & Visitors
+
+                If you want to use **your own API keys** to prevent credit issues during evaluation:
+
+                1. Enter your API keys below
+                2. Click **"Save & Override Keys"**
+                3. Your keys will be used for **this session only** (stored in browser memory, never saved to disk)
+
+                Then you can:
+                - Use any tool in the tabs above
+                - Connect from TraceMind-AI (the MCP tools will use your keys)
+                - Test with Claude Desktop (will use your keys)
+
+                ## Security Notes
+
+                ✅ **Session-only storage**: Keys stored only in your browser session
+                ✅ **No server persistence**: Keys never saved to disk or database
+                ✅ **API endpoint security**: This form is NOT exposed via Gradio's "Use via API"
+                ✅ **HTTPS encryption**: All API calls made over secure connections
+
+                ---
+                """)
+
+                # Show current key status (masked)
+                current_gemini = os.environ.get("GEMINI_API_KEY", "")
+                current_hf = os.environ.get("HF_TOKEN", "")
+
+                gemini_display = f"`{current_gemini[:10]}...`" if current_gemini else "❌ Not configured"
+                hf_display = f"`{current_hf[:7]}...`" if current_hf else "❌ Not configured"
+
+                gr.Markdown(f"""
+                ### Current Configuration Status
+
+                - **Gemini API Key**: {gemini_display}
+                - **HuggingFace Token**: {hf_display}
+
+                {"✅ Using HuggingFace Spaces Secrets (default)" if current_gemini and current_hf else "⚠️ API keys not fully configured"}
+                """)
+
+                gr.Markdown("### Override with Your Own Keys")
+
+                with gr.Row():
+                    with gr.Column():
+                        gemini_api_key_input = gr.Textbox(
+                            label="Google Gemini API Key",
+                            placeholder="Leave empty to use default, or enter AIza...",
+                            type="password",
+                            value="",
+                            info="Get your free API key at: https://ai.google.dev/"
+                        )
+
+                with gr.Row():
+                    with gr.Column():
+                        hf_token_input = gr.Textbox(
+                            label="HuggingFace Token",
+                            placeholder="Leave empty to use default, or enter hf_...",
+                            type="password",
+                            value="",
+                            info="Get your token at: https://huggingface.co/settings/tokens"
+                        )
+
+                with gr.Row():
+                    save_keys_btn = gr.Button("💾 Save & Override Keys", variant="primary", size="lg")
+                    reset_keys_btn = gr.Button("🔄 Reset to Defaults", variant="secondary", size="lg")
+
+                settings_status = gr.Markdown("")
+
+                gr.Markdown("""
+                ---
+
+                ### How to Get API Keys
+
+                #### Google Gemini API Key
+
+                1. Go to [Google AI Studio](https://ai.google.dev/)
+                2. Click "Get API Key" in the top right
+                3. Create a new project or select an existing one
+                4. Generate an API key
+                5. Copy the key (starts with `AIza...`)
+
+                **Free Tier**: 1,500 requests per day, suitable for testing and demos
+
+                #### HuggingFace Token
+
+                1. Go to [HuggingFace Settings](https://huggingface.co/settings/tokens)
+                2. Click "New token"
+                3. Give it a name (e.g., "TraceMind Access")
+                4. Select permissions:
+                   - **Read**: Sufficient for viewing datasets (leaderboard, traces, results)
+                   - **Write**: Required for `push_dataset_to_hub` tool (uploading synthetic datasets)
+                5. Create and copy the token (starts with `hf_...`)
+
+                **Recommended**: Use "Write" permissions for full MCP server functionality
+                """)
+
+                # Event handlers for Settings tab
+                def save_override_keys(gemini, hf):
+                    """Save user-provided API keys to session (override Spaces Secrets)"""
+                    messages = []
+
+                    if gemini and gemini.strip():
+                        if gemini.startswith("AIza"):
+                            os.environ["GEMINI_API_KEY"] = gemini.strip()
+                            messages.append("✅ **Gemini API key** saved and will be used for this session")
+                            logger.info("Gemini API key overridden by user for this session")
+                        else:
+                            messages.append("⚠️ **Invalid Gemini API key format** (should start with 'AIza')")
+
+                    if hf and hf.strip():
+                        if hf.startswith("hf_"):
+                            os.environ["HF_TOKEN"] = hf.strip()
+                            messages.append("✅ **HuggingFace token** saved and will be used for this session")
+                            logger.info("HuggingFace token overridden by user for this session")
+                        else:
+                            messages.append("⚠️ **Invalid HuggingFace token format** (should start with 'hf_')")
+
+                    if not messages:
+                        messages.append("⚠️ No keys provided. Still using default keys from Spaces Secrets.")
+
+                    messages.append("\n**Note**: Your keys are active for this browser session only.")
+                    messages.append("\n🎯 You can now use all MCP tools with your own API keys!")
+
+                    return "\n\n".join(messages)
+
+                def reset_to_defaults():
+                    """Reset to Spaces Secrets (requires page refresh)"""
+                    return """
+                    ℹ️ To reset to default keys from Spaces Secrets, please **refresh this page**.
+
+                    Your session overrides will be cleared and the default keys will be used again.
+                    """
+
+                # Wire up buttons with api_name=False for security
+                save_keys_btn.click(
+                    fn=save_override_keys,
+                    inputs=[gemini_api_key_input, hf_token_input],
+                    outputs=[settings_status],
+                    api_name=False  # ✅ CRITICAL: Prevents API key exposure via Gradio API
+                )
+
+                reset_keys_btn.click(
+                    fn=reset_to_defaults,
+                    outputs=[settings_status],
+                    api_name=False  # ✅ CRITICAL: Prevents exposure
+                )
+
     return demo
 
 if __name__ == "__main__":

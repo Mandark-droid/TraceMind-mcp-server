@@ -409,6 +409,67 @@ Top N Models: 5
 
 Click "🔍 Analyze" and get AI-powered insights from live data!
 
+## 🎯 For Hackathon Judges & Visitors
+
+### Using Your Own API Keys (Recommended)
+
+This MCP server has pre-configured API keys in HuggingFace Spaces Secrets for quick testing. However, **to prevent credit issues during evaluation**, we strongly recommend using your own API keys:
+
+#### Option 1: Configure in MCP Server UI (Simplest)
+
+1. **Open the MCP Server Space**: https://huggingface.co/spaces/MCP-1st-Birthday/TraceMind-mcp-server
+2. Navigate to the **⚙️ Settings** tab
+3. Enter your own **Gemini API Key** and **HuggingFace Token**
+4. Click **"Save & Override Keys"**
+5. ✅ Your keys will be used for all MCP tool calls in this session
+
+**Then you can**:
+- Use any tool in the tabs above
+- Connect from TraceMind-AI (it will automatically use your keys configured here)
+- Test with Claude Desktop (will use your keys)
+
+#### Option 2: For TraceMind-AI Integration
+
+If you're testing the complete TraceMind platform (Track 2 - MCP in Action):
+
+1. **Configure MCP Server** (as described above)
+2. **Open TraceMind-AI**: https://huggingface.co/spaces/MCP-1st-Birthday/TraceMind
+3. Navigate to **⚙️ Settings** in TraceMind-AI
+4. Enter your API keys there as well
+5. ✅ Both apps will use your keys
+
+### Why Two Settings Screens?
+
+- **TraceMind-AI** (Track 2) is the user-facing UI - calls MCP server for intelligent analysis
+- **TraceMind MCP Server** (Track 1) is the backend service - provides MCP tools
+- They run in **separate browser sessions** → need separate configuration
+- Configuring both ensures your keys are used throughout the evaluation flow
+
+### Getting Free API Keys
+
+Both APIs have generous free tiers perfect for hackathon evaluation:
+
+**Google Gemini API Key**:
+- Go to https://ai.google.dev/
+- Click "Get API Key" → Create project → Generate key
+- **Free tier**: 1,500 requests/day
+
+**HuggingFace Token**:
+- Go to https://huggingface.co/settings/tokens
+- Click "New token" → Name it (e.g., "TraceMind Access")
+- **Permissions**:
+  - Select "Read" for viewing datasets (sufficient for most tools)
+  - Select "Write" if you want to use `push_dataset_to_hub` tool to upload synthetic datasets
+- **Recommended**: Use "Write" permissions for full functionality
+- No rate limits for public dataset access
+
+### Default Configuration (If You Don't Configure)
+
+If you don't configure your own keys, the MCP server will use our pre-configured keys from HuggingFace Spaces Secrets. This is fine for quick testing, but please note:
+- Uses our API credits
+- May hit rate limits during high traffic
+- Recommended only for brief testing
+
 ## MCP Integration
 
 ### How It Works
