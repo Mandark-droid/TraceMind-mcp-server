@@ -2,7 +2,7 @@
 TraceMind MCP Server - Hugging Face Space Entry Point (Track 1)
 
 This file serves as the entry point for HuggingFace Space deployment.
-Exposes 7 AI-powered MCP tools + 3 Resources + 3 Prompts via Gradio's native MCP support.
+Exposes 10 AI-powered MCP tools + 3 Resources + 3 Prompts via Gradio's native MCP support.
 
 Built on Open Source Foundation:
     🔭 TraceVerde (genai_otel_instrument) - Automatic OpenTelemetry instrumentation
@@ -36,6 +36,7 @@ Tools Provided:
     📈 get_leaderboard_summary - Get leaderboard overview statistics
     📦 get_dataset - Load SMOLTRACE datasets as JSON
     🧪 generate_synthetic_dataset - Create domain-specific test datasets
+    📝 generate_prompt_template - Generate customized smolagents prompt templates
     📤 push_dataset_to_hub - Upload datasets to HuggingFace Hub
 
 Compatible with:
@@ -71,6 +72,7 @@ from mcp_tools import (
     get_leaderboard_summary,
     get_dataset,
     generate_synthetic_dataset,
+    generate_prompt_template,
     push_dataset_to_hub
 )
 
@@ -91,7 +93,7 @@ def create_gradio_ui():
 
         **AI-Powered Analysis for Agent Evaluation Data**
 
-        This server provides **9 MCP Tools + 3 MCP Resources + 3 MCP Prompts**:
+        This server provides **10 MCP Tools + 3 MCP Resources + 3 MCP Prompts**:
 
         ### MCP Tools (AI-Powered & Optimized)
         - 📊 **Analyze Leaderboard**: Get AI-powered insights from evaluation results
@@ -102,6 +104,7 @@ def create_gradio_ui():
         - 📈 **Get Leaderboard Summary**: Get high-level leaderboard statistics (optimized for overview)
         - 📦 **Get Dataset**: Load any HuggingFace dataset as JSON for flexible analysis
         - 🧪 **Generate Synthetic Dataset**: Create domain-specific test datasets for SMOLTRACE
+        - 📝 **Generate Prompt Template**: Create customized smolagents prompt templates for your domain
         - 📤 **Push to Hub**: Upload generated datasets to HuggingFace Hub
 
         ### MCP Resources (Data Access)
@@ -636,6 +639,77 @@ def create_gradio_ui():
                     fn=run_generate_synthetic,
                     inputs=[synth_domain, synth_tools, synth_num_tasks, synth_difficulty, synth_agent_type],
                     outputs=[synth_output]
+                )
+
+            # Tab: Generate Prompt Template
+            with gr.Tab("📝 Generate Prompt Template"):
+                gr.Markdown("""
+                ## Create Customized Agent Prompt Template
+
+                Generate a domain-specific prompt template based on smolagents templates.
+                This template can be used with your synthetic dataset to run SMOLTRACE evaluations.
+
+                **🎯 Use Case**: After generating a synthetic dataset, create a matching prompt template
+                that agents can use during evaluation. This ensures your evaluation setup is complete.
+
+                **Output**: Customized YAML prompt template ready for use with smolagents
+                """)
+
+                with gr.Row():
+                    with gr.Column():
+                        prompt_domain = gr.Textbox(
+                            label="Domain",
+                            placeholder="e.g., finance, healthcare, customer_support",
+                            value="travel",
+                            info="The domain/industry for the prompt template"
+                        )
+                        prompt_tools = gr.Textbox(
+                            label="Tool Names (comma-separated)",
+                            placeholder="e.g., get_weather,search_flights,book_hotel",
+                            value="get_weather,search_flights,book_hotel",
+                            info="Names of tools the agent will use",
+                            lines=2
+                        )
+                        prompt_agent_type = gr.Dropdown(
+                            label="Agent Type",
+                            choices=["tool", "code"],
+                            value="tool",
+                            info="ToolCallingAgent (tool) or CodeAgent (code)"
+                        )
+                        prompt_button = gr.Button("📝 Generate Prompt Template", variant="primary", size="lg")
+
+                    with gr.Column():
+                        prompt_output = gr.JSON(label="Generated Prompt Template (JSON)")
+
+                        gr.Markdown("""
+                        ### 📝 Next Steps
+
+                        After generation:
+                        1. **Copy the `prompt_template`** from the JSON output above
+                        2. **Save it as a YAML file** (e.g., `{domain}_agent.yaml`)
+                        3. **Include it in your HuggingFace dataset** card or repository
+                        4. **Use it with SMOLTRACE** when running evaluations
+
+                        **💡 Tip**: This template is AI-customized for your domain and tools!
+                        """)
+
+                async def run_generate_prompt_template(domain, tools, agent_type):
+                    """Generate prompt template with async support."""
+                    try:
+                        import json
+                        result = await generate_prompt_template(
+                            domain=domain,
+                            tool_names=tools,
+                            agent_type=agent_type
+                        )
+                        return json.loads(result)
+                    except Exception as e:
+                        return {"error": str(e)}
+
+                prompt_button.click(
+                    fn=run_generate_prompt_template,
+                    inputs=[prompt_domain, prompt_tools, prompt_agent_type],
+                    outputs=[prompt_output]
                 )
 
             # Tab 7: Push Dataset to Hub
@@ -1259,8 +1333,8 @@ def create_gradio_ui():
 
                 ### What's Exposed via MCP:
 
-                #### 9 MCP Tools (AI-Powered & Optimized)
-                The nine tools above (`analyze_leaderboard`, `debug_trace`, `estimate_cost`, `compare_runs`, `get_top_performers`, `get_leaderboard_summary`, `get_dataset`, `generate_synthetic_dataset`, `push_dataset_to_hub`)
+                #### 10 MCP Tools (AI-Powered & Optimized)
+                The ten tools above (`analyze_leaderboard`, `debug_trace`, `estimate_cost`, `compare_runs`, `get_top_performers`, `get_leaderboard_summary`, `get_dataset`, `generate_synthetic_dataset`, `generate_prompt_template`, `push_dataset_to_hub`)
                 are automatically exposed as MCP tools and can be called from any MCP client.
 
                 #### 3 MCP Resources (Data Access)

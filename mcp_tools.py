@@ -1916,3 +1916,180 @@ def _calculate_agent_type_distribution(num_tasks: int, agent_type: str) -> dict:
         tool_count = num_tasks // 2
         code_count = num_tasks - tool_count
         return {"tool": tool_count, "code": code_count}
+
+
+@gr.mcp.tool()
+async def generate_prompt_template(
+    domain: str,
+    tool_names: str,
+    agent_type: str = "tool"
+) -> str:
+    """
+    Generate customized smolagents prompt template for a specific domain and tool set.
+
+    This tool fetches the base prompt template from smolagents GitHub repository and uses
+    Gemini AI to adapt it for your specific domain and tools. The result is a ready-to-use
+    prompt template that you can use with SMOLTRACE evaluations.
+
+    **Use Case**: When you generate synthetic datasets with `generate_synthetic_dataset`,
+    use this tool to create a matching prompt template that agents can use during evaluation.
+    This ensures your evaluation setup is complete and ready to run.
+
+    **Integration**: The generated prompt template can be included in your HuggingFace dataset
+    card, making it easy for anyone to run evaluations with your dataset.
+
+    Args:
+        domain (str): The domain for the prompt template (e.g., "finance", "healthcare", "customer_support")
+        tool_names (str): Comma-separated list of tool names (e.g., "get_stock_price,calculate_roi,fetch_company_info")
+        agent_type (str): Agent type - "tool" for ToolCallingAgent or "code" for CodeAgent. Default: "tool"
+
+    Returns:
+        str: JSON response containing the customized YAML prompt template and metadata
+    """
+    try:
+        import aiohttp
+
+        # Initialize Gemini client
+        gemini_client = GeminiClient()
+
+        # Validate agent_type
+        if agent_type not in ["tool", "code"]:
+            return json.dumps({
+                "error": "agent_type must be 'tool' or 'code'",
+                "agent_type_provided": agent_type
+            }, indent=2)
+
+        # Parse tool names
+        tools = [tool.strip() for tool in tool_names.split(",") if tool.strip()]
+        if len(tools) == 0:
+            return json.dumps({
+                "error": "At least one tool name must be provided",
+                "tool_names_provided": tool_names
+            }, indent=2)
+
+        # Determine which template to fetch
+        if agent_type == "tool":
+            template_url = "https://raw.githubusercontent.com/huggingface/smolagents/refs/heads/main/src/smolagents/prompts/toolcalling_agent.yaml"
+            template_name = "ToolCallingAgent"
+        else:  # code
+            template_url = "https://raw.githubusercontent.com/huggingface/smolagents/refs/heads/main/src/smolagents/prompts/code_agent.yaml"
+            template_name = "CodeAgent"
+
+        # Fetch the base template from GitHub
+        async with aiohttp.ClientSession() as session:
+            async with session.get(template_url) as response:
+                if response.status != 200:
+                    return json.dumps({
+                        "error": f"Failed to fetch template from GitHub (status {response.status})",
+                        "template_url": template_url
+                    }, indent=2)
+
+                base_template = await response.text()
+
+        # Create customization prompt for Gemini
+        customization_prompt = f"""You are an expert at creating agent prompt templates for smolagents.
+
+I have a base {template_name} prompt template and need to customize it for a specific domain and set of tools.
+
+**Domain**: {domain}
+**Tools Available**: {", ".join(tools)}
+**Agent Type**: {template_name}
+
+**Base Template**:
+```yaml
+{base_template}
+```
+
+**Your Task**:
+1. Analyze the base template structure
+2. Customize it for the {domain} domain
+3. Integrate the provided tools ({", ".join(tools)}) into the template
+4. Add domain-specific instructions and examples
+5. Ensure the tool descriptions are clear and domain-relevant
+
+**Customization Guidelines**:
+- Keep the YAML structure intact
+- Update the introduction/system message to be domain-specific
+- Add clear descriptions for each tool in the context of the {domain} domain
+- Include domain-specific examples where appropriate
+- Maintain the same placeholder variables (e.g., {{{{tool_descriptions}}}}, {{{{tools}}}})
+- Ensure the template is immediately usable with SMOLTRACE
+
+**Output Format**: Return ONLY the customized YAML template. No explanations, no markdown code blocks, just the raw YAML content.
+
+Start your response with the YAML content immediately."""
+
+        # Call Gemini to customize the template
+        customized_template = await gemini_client.generate_content(
+            customization_prompt,
+            temperature=0.3,  # Lower temperature for more consistent formatting
+            max_output_tokens=4096
+        )
+
+        # Clean up the response (remove any markdown formatting if present)
+        customized_template = customized_template.strip()
+        if customized_template.startswith("```yaml"):
+            customized_template = customized_template.replace("```yaml\n", "").replace("```", "").strip()
+        elif customized_template.startswith("```"):
+            customized_template = customized_template.replace("```\n", "").replace("```", "").strip()
+
+        # Return response with metadata
+        return json.dumps({
+            "template_info": {
+                "domain": domain,
+                "tools": tools,
+                "agent_type": agent_type,
+                "template_name": template_name,
+                "base_template_url": template_url,
+                "customization_method": "Google Gemini 2.5 Pro"
+            },
+            "prompt_template": customized_template,
+            "usage_instructions": f"""
+# How to Use This Prompt Template
+
+## In SMOLTRACE Evaluations
+
+1. Save this template to a file (e.g., `{domain}_{agent_type}_agent.yaml`)
+2. Use it with SMOLTRACE:
+   ```python
+   from smolagents import {template_name}
+
+   agent = {template_name}(
+       tools=[...],  # Your tools: {", ".join(tools)}
+       model="openai/gpt-4",  # Or your preferred model
+       system_prompt_path="{domain}_{agent_type}_agent.yaml"
+   )
+   ```
+
+## In HuggingFace Dataset Card
+
+Add this template to your dataset's README.md:
+```markdown
+## Agent Prompt Template
+
+This dataset was designed for the following agent configuration:
+
+- **Agent Type**: {template_name}
+- **Domain**: {domain}
+- **Tools**: {", ".join(tools)}
+
+### Prompt Template (YAML)
+
+See the `prompt_template.yaml` file in this repository.
+```
+
+## Testing the Template
+
+Use this template when evaluating with the synthetic dataset you generated.
+The template is pre-configured for the {domain} domain and includes all necessary
+tool descriptions and examples.
+"""
+        }, indent=2)
+
+    except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
+        return json.dumps({
+            "error": f"Failed to generate prompt template: {str(e)}",
+            "error_details": error_details
+        }, indent=2)
