@@ -2020,11 +2020,18 @@ I have a base {template_name} prompt template and need to customize it for a spe
 Start your response with the YAML content immediately."""
 
         # Call Gemini to customize the template
-        customized_template = await gemini_client.generate_content(
+        generation_config = {
+            "temperature": 0.3,  # Lower temperature for more consistent formatting
+            "top_p": 0.95,
+            "top_k": 40,
+            "max_output_tokens": 4096,
+        }
+
+        response = await gemini_client.model.generate_content_async(
             customization_prompt,
-            temperature=0.3,  # Lower temperature for more consistent formatting
-            max_output_tokens=4096
+            generation_config=generation_config
         )
+        customized_template = response.text
 
         # Clean up the response (remove any markdown formatting if present)
         customized_template = customized_template.strip()
