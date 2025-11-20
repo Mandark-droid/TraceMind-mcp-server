@@ -1057,7 +1057,8 @@ async def get_dataset(
                 "data": []
             }, indent=2)
 
-        # Load dataset from HuggingFace        dataset = load_dataset(dataset_repo, split="train")
+        # Load dataset from HuggingFace
+        dataset = load_dataset(dataset_repo, split="train")
         df = pd.DataFrame(dataset)
 
         if df.empty:
