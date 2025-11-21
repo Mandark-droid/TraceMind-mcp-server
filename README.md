@@ -116,9 +116,9 @@ All analysis is powered by **Google Gemini 2.5 Pro** for intelligent, context-aw
 - ✅ **Testing Interface**: Beautiful Gradio UI for testing all components
 - ✅ **Enterprise Focus**: Cost optimization, debugging, decision support, and custom dataset generation
 - ✅ **Google Gemini Powered**: Leverages Gemini 2.5 Pro for intelligent analysis
-- ✅ **15 Total Components**: 9 Tools + 3 Resources + 3 Prompts
+- ✅ **17 Total Components**: 11 Tools + 3 Resources + 3 Prompts
 
-### 🛠️ Nine Production-Ready Tools
+### 🛠️ Eleven Production-Ready Tools
 
 #### 1. analyze_leaderboard
 
@@ -893,11 +893,11 @@ For issues or questions:
 
 ### v1.0.0 (2025-11-14)
 - Initial release for MCP Hackathon
-- **Complete MCP Implementation**: 15 components total
-  - 9 AI-powered and optimized tools:
-    - analyze_leaderboard, debug_trace, estimate_cost, compare_runs (AI-powered)
+- **Complete MCP Implementation**: 17 components total
+  - 11 AI-powered and optimized tools:
+    - analyze_leaderboard, debug_trace, estimate_cost, compare_runs, analyze_results (AI-powered analysis)
     - get_top_performers, get_leaderboard_summary (optimized for token reduction)
-    - get_dataset, generate_synthetic_dataset, push_dataset_to_hub (data management)
+    - get_dataset, generate_synthetic_dataset, generate_prompt_template, push_dataset_to_hub (data management)
   - 3 data resources (leaderboard, trace, cost data)
   - 3 prompt templates (analysis, debug, optimization)
 - Gradio native MCP support with decorators (`@gr.mcp.*`)

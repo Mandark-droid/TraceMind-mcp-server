@@ -2,7 +2,7 @@
 TraceMind MCP Server - Hugging Face Space Entry Point (Track 1)
 
 This file serves as the entry point for HuggingFace Space deployment.
-Exposes 10 AI-powered MCP tools + 3 Resources + 3 Prompts via Gradio's native MCP support.
+Exposes 11 AI-powered MCP tools + 3 Resources + 3 Prompts via Gradio's native MCP support.
 
 Built on Open Source Foundation:
     🔭 TraceVerde (genai_otel_instrument) - Automatic OpenTelemetry instrumentation
@@ -32,6 +32,7 @@ Tools Provided:
     🐛 debug_trace - Debug agent execution traces with AI
     💰 estimate_cost - Predict evaluation costs before running
     ⚖️ compare_runs - Compare evaluation runs with AI analysis
+    📋 analyze_results - Analyze detailed test results with optimization recommendations
     🏆 get_top_performers - Get top N models from leaderboard (optimized)
     📈 get_leaderboard_summary - Get leaderboard overview statistics
     📦 get_dataset - Load SMOLTRACE datasets as JSON
@@ -111,7 +112,7 @@ def create_gradio_ui():
         gr.Markdown("""
         **Track 1 Submission**: Building MCP (Enterprise)
 
-        *AI-powered MCP server providing 10 tools, 3 resources, and 3 prompts for agent evaluation analysis.*
+        *AI-powered MCP server providing 11 tools, 3 resources, and 3 prompts for agent evaluation analysis.*
         """)
 
         # TraceMind Ecosystem (Accordion)
@@ -139,7 +140,7 @@ def create_gradio_ui():
             **Track 1: Building MCP (Enterprise)**
             - Provides AI-powered MCP tools for analyzing evaluation data
             - Uses Google Gemini 2.5 Pro for intelligent insights
-            - 10 tools + 3 resources + 3 prompts
+            - 11 tools + 3 resources + 3 prompts
             - [HF Space](https://huggingface.co/spaces/MCP-1st-Birthday/TraceMind-mcp-server)
 
             #### 🧠 TraceMind-AI
@@ -1439,8 +1440,8 @@ def create_gradio_ui():
 
                 ### What's Exposed via MCP:
 
-                #### 10 MCP Tools (AI-Powered & Optimized)
-                The ten tools above (`analyze_leaderboard`, `debug_trace`, `estimate_cost`, `compare_runs`, `get_top_performers`, `get_leaderboard_summary`, `get_dataset`, `generate_synthetic_dataset`, `generate_prompt_template`, `push_dataset_to_hub`)
+                #### 11 MCP Tools (AI-Powered & Optimized)
+                The eleven tools above (`analyze_leaderboard`, `debug_trace`, `estimate_cost`, `compare_runs`, `analyze_results`, `get_top_performers`, `get_leaderboard_summary`, `get_dataset`, `generate_synthetic_dataset`, `generate_prompt_template`, `push_dataset_to_hub`)
                 are automatically exposed as MCP tools and can be called from any MCP client.
 
                 #### 3 MCP Resources (Data Access)
