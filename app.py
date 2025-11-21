@@ -1428,6 +1428,76 @@ def create_gradio_ui():
 
                 ---
 
+                ### 10. analyze_results
+
+                **Description**: Analyzes detailed test results and provides optimization recommendations
+
+                **Parameters**:
+                - `results_repo` (str, required): HuggingFace dataset containing results
+                  - Format: `username/smoltrace-results-model-timestamp`
+                  - Must contain "smoltrace-results-" prefix
+                - `analysis_focus` (str): Focus area for analysis (default: "comprehensive")
+                  - Options: "failures", "performance", "cost", "comprehensive"
+                - `max_rows` (int): Maximum test cases to analyze (default: 100, range: 10-500)
+
+                **Returns**: JSON object with AI analysis including:
+                - Overall statistics (success rate, average duration, total cost)
+                - Failure patterns and root causes
+                - Performance bottlenecks in specific test cases
+                - Cost optimization opportunities
+                - Tool usage patterns
+                - Task-specific insights (which types work well vs poorly)
+                - Actionable optimization recommendations
+
+                **Use Case**:
+                After running an evaluation, analyze the detailed test results to understand why certain tests are failing and get specific recommendations for improving success rate.
+
+                **Example**:
+                ```python
+                result = analyze_results(
+                    results_repo="kshitij/smoltrace-results-gpt4-20251120",
+                    analysis_focus="failures",
+                    max_rows=100
+                )
+                ```
+
+                ---
+
+                ### 11. generate_prompt_template
+
+                **Description**: Generate customized smolagents prompt template for a specific domain and tool set
+
+                **Parameters**:
+                - `domain` (str, required): Domain for the prompt template
+                  - Examples: "finance", "healthcare", "customer_support", "e-commerce"
+                - `tool_names` (str, required): Comma-separated list of tool names
+                  - Format: "tool1,tool2,tool3"
+                  - Example: "get_stock_price,calculate_roi,fetch_company_info"
+                - `agent_type` (str): Agent type (default: "tool")
+                  - Options: "tool" (ToolCallingAgent), "code" (CodeAgent)
+
+                **Returns**: JSON object containing:
+                - Customized YAML prompt template
+                - Metadata (domain, tools, agent_type, timestamp)
+                - Usage instructions
+
+                **Use Case**:
+                When you generate synthetic datasets with `generate_synthetic_dataset`, use this tool to create a matching prompt template that agents can use during evaluation. This ensures your evaluation setup is complete and ready to run.
+
+                **Integration**:
+                The generated prompt template can be included in your HuggingFace dataset card, making it easy for anyone to run evaluations with your dataset.
+
+                **Example**:
+                ```python
+                result = generate_prompt_template(
+                    domain="customer_support",
+                    tool_names="search_knowledge_base,create_ticket,send_email,escalate_to_human",
+                    agent_type="tool"
+                )
+                ```
+
+                ---
+
                 ## MCP Integration
 
                 This Gradio app is MCP-enabled. When deployed to HuggingFace Spaces, it can be accessed via MCP clients.
@@ -1476,77 +1546,93 @@ def create_gradio_ui():
 
         with gr.Tab("⚙️ Settings"):
             gr.Markdown("""
-                # ⚙️ API Key Configuration (Optional)
+                # ⚙️ API Configuration
 
-                ## Default Configuration
+                ## Overview
 
-                This MCP server uses **pre-configured API keys from HuggingFace Spaces Secrets**.
+                TraceMind MCP Server operates with **pre-configured API keys** from HuggingFace Spaces Secrets, enabling immediate use without additional setup.
 
-                For most users (especially MCP client demos with Claude Desktop), no configuration is needed!
+                **For Judges & Advanced Users**: Override default credentials with your own API keys to:
+                - Avoid rate limits during extensive testing
+                - Track usage independently
+                - Ensure uninterrupted evaluation access
 
-                ## For Hackathon Judges & Visitors
+                ---
 
-                If you want to use **your own API keys** to prevent credit issues during evaluation:
+                ## Configuration Options
 
-                1. Enter your API keys below
-                2. Click **"Save & Override Keys"**
-                3. Your keys will be used for **this session only** (stored in browser memory, never saved to disk)
+                **Default Mode** (Recommended)
+                - Uses HuggingFace Spaces Secrets
+                - No configuration required
+                - Suitable for most evaluations
 
-                Then you can:
-                - Use any tool in the tabs above
-                - Connect from TraceMind-AI (the MCP tools will use your keys)
-                - Test with Claude Desktop (will use your keys)
+                **Custom Mode** (Optional)
+                - Session-scoped overrides
+                - Your keys take precedence
+                - Active until browser refresh
 
-                ## Security Notes
+                ---
 
-                ✅ **Session-only storage**: Keys stored only in your browser session
-                ✅ **No server persistence**: Keys never saved to disk or database
-                ✅ **API endpoint security**: This form is NOT exposed via Gradio's "Use via API"
-                ✅ **HTTPS encryption**: All API calls made over secure connections
+                ## Security
+
+                - ✅ **Session-only storage** - Keys never persisted to disk
+                - ✅ **No API exposure** - Configuration endpoint disabled (`api_name=False`)
+                - ✅ **HTTPS encrypted** - All communications secured
+                - ✅ **Privacy-first** - Key status displayed without revealing characters
 
                 ---
                 """)
 
-            # Show current key status (masked)
+            # Show current key status (fully masked for security)
             current_gemini = os.environ.get("GEMINI_API_KEY", "")
             current_hf = os.environ.get("HF_TOKEN", "")
 
-            gemini_display = f"`{current_gemini[:10]}...`" if current_gemini else "❌ Not configured"
-            hf_display = f"`{current_hf[:7]}...`" if current_hf else "❌ Not configured"
+            gemini_display = "✅ Configured" if current_gemini else "❌ Not configured"
+            hf_display = "✅ Configured" if current_hf else "❌ Not configured"
+
+            status_badge = "✅ **Active Configuration**: HuggingFace Spaces Secrets" if (current_gemini and current_hf) else "⚠️ **Status**: Incomplete configuration"
 
             gr.Markdown(f"""
-                ### Current Configuration Status
+                ## Current Status
 
-                - **Gemini API Key**: {gemini_display}
-                - **HuggingFace Token**: {hf_display}
+                | Component | Status |
+                |-----------|--------|
+                | **Google Gemini API** | {gemini_display} |
+                | **HuggingFace Token** | {hf_display} |
 
-                {"✅ Using HuggingFace Spaces Secrets (default)" if current_gemini and current_hf else "⚠️ API keys not fully configured"}
+                {status_badge}
+
+                ---
                 """)
 
-            gr.Markdown("### Override with Your Own Keys")
+            gr.Markdown("""
+                ## Custom API Keys
+
+                **Optional**: Override default credentials with your own keys for this session.
+                """)
 
             with gr.Row():
                 with gr.Column():
                     gemini_api_key_input = gr.Textbox(
-                            label="Google Gemini API Key",
-                            placeholder="Leave empty to use default, or enter AIza...",
+                            label="Google Gemini API Key (Optional)",
+                            placeholder="Leave empty for defaults or enter: AIza...",
                             type="password",
                             value="",
-                            info="Get your free API key at: https://ai.google.dev/"
+                            info="Free tier: 1,500 requests/day • Get key: https://ai.google.dev/"
                         )
 
             with gr.Row():
                 with gr.Column():
                     hf_token_input = gr.Textbox(
-                        label="HuggingFace Token",
-                        placeholder="Leave empty to use default, or enter hf_...",
+                        label="HuggingFace Token (Optional)",
+                        placeholder="Leave empty for defaults or enter: hf_...",
                         type="password",
                         value="",
-                        info="Get your token at: https://huggingface.co/settings/tokens"
+                        info="Permissions: Read (view) or Write (full access) • Get token: https://huggingface.co/settings/tokens"
                     )
 
             with gr.Row():
-                save_keys_btn = gr.Button("💾 Save & Override Keys", variant="primary", size="lg")
+                save_keys_btn = gr.Button("💾 Apply Configuration", variant="primary", size="lg")
                 reset_keys_btn = gr.Button("🔄 Reset to Defaults", variant="secondary", size="lg")
 
             settings_status = gr.Markdown("")
@@ -1554,66 +1640,67 @@ def create_gradio_ui():
             gr.Markdown("""
                 ---
 
-                ### How to Get API Keys
+                ## API Key Setup Guide
 
-                #### Google Gemini API Key
+                <details>
+                <summary><b>📖 Click to expand setup instructions</b></summary>
 
-                1. Go to [Google AI Studio](https://ai.google.dev/)
-                2. Click "Get API Key" in the top right
-                3. Create a new project or select an existing one
-                4. Generate an API key
-                5. Copy the key (starts with `AIza...`)
+                ### Google Gemini API
 
-                **Free Tier**: 1,500 requests per day, suitable for testing and demos
+                1. Visit [Google AI Studio](https://ai.google.dev/)
+                2. Generate API key (starts with `AIza`)
+                3. **Free tier**: 1,500 requests/day
 
-                #### HuggingFace Token
+                ### HuggingFace Token
 
-                1. Go to [HuggingFace Settings](https://huggingface.co/settings/tokens)
-                2. Click "New token"
-                3. Give it a name (e.g., "TraceMind Access")
-                4. Select permissions:
-                   - **Read**: Sufficient for viewing datasets (leaderboard, traces, results)
-                   - **Write**: Required for `push_dataset_to_hub` tool (uploading synthetic datasets)
-                5. Create and copy the token (starts with `hf_...`)
+                1. Visit [HuggingFace Tokens](https://huggingface.co/settings/tokens)
+                2. Create token with **Read** (view datasets) or **Write** (upload datasets) permissions
+                3. Token starts with `hf_`
 
-                **Recommended**: Use "Write" permissions for full MCP server functionality
+                </details>
+
+                ---
+
+                **Note**: Custom keys are session-scoped and cleared on page refresh.
                 """)
 
             # Event handlers for Settings tab
             def save_override_keys(gemini, hf):
                 """Save user-provided API keys to session (override Spaces Secrets)"""
-                messages = []
+                results = []
 
                 if gemini and gemini.strip():
                     if gemini.startswith("AIza"):
                         os.environ["GEMINI_API_KEY"] = gemini.strip()
-                        messages.append("✅ **Gemini API key** saved and will be used for this session")
-                        logger.info("Gemini API key overridden by user for this session")
+                        results.append("✅ **Gemini API**: Configuration applied successfully")
+                        logger.info("Gemini API key overridden by user")
                     else:
-                        messages.append("⚠️ **Invalid Gemini API key format** (should start with 'AIza')")
+                        results.append("❌ **Gemini API**: Invalid format (must start with 'AIza')")
 
                 if hf and hf.strip():
                     if hf.startswith("hf_"):
                         os.environ["HF_TOKEN"] = hf.strip()
-                        messages.append("✅ **HuggingFace token** saved and will be used for this session")
-                        logger.info("HuggingFace token overridden by user for this session")
+                        results.append("✅ **HuggingFace Token**: Configuration applied successfully")
+                        logger.info("HuggingFace token overridden by user")
                     else:
-                        messages.append("⚠️ **Invalid HuggingFace token format** (should start with 'hf_')")
+                        results.append("❌ **HuggingFace Token**: Invalid format (must start with 'hf_')")
 
-                if not messages:
-                    messages.append("⚠️ No keys provided. Still using default keys from Spaces Secrets.")
+                if not results:
+                    return "ℹ️ **No changes**: Empty fields submitted. Default configuration remains active."
 
-                messages.append("\n**Note**: Your keys are active for this browser session only.")
-                messages.append("\n🎯 You can now use all MCP tools with your own API keys!")
-
-                return "\n\n".join(messages)
+                results.append("\n**Status**: Custom configuration active for this session.")
+                return "\n\n".join(results)
 
             def reset_to_defaults():
                 """Reset to Spaces Secrets (requires page refresh)"""
                 return """
-                ℹ️ To reset to default keys from Spaces Secrets, please **refresh this page**.
+                ℹ️ **Reset Instructions**
 
-                Your session overrides will be cleared and the default keys will be used again.
+                To restore default HuggingFace Spaces configuration:
+                1. Refresh this page (F5 or Ctrl+R)
+                2. Session overrides will be cleared automatically
+
+                Default credentials will be active after refresh.
                 """
 
             # Wire up buttons with api_name=False for security
