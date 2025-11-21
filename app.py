@@ -103,7 +103,7 @@ def create_gradio_ui():
                 AI-Powered Analysis for Agent Evaluation
             </p>
             <p style="color: rgba(255,255,255,0.8); margin: 10px 0 0 0; font-size: 0.9em;">
-                Powered by Google Gemini 2.5 Pro • HuggingFace Datasets • OpenTelemetry
+                Powered by Gemini | TraceVerde | SMOLTRACE | HuggingFace | OpenTelemetry | MCP
             </p>
         </div>
         """)
