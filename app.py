@@ -103,7 +103,7 @@ def create_gradio_ui():
                 AI-Powered Analysis for Agent Evaluation
             </p>
             <p style="color: rgba(255,255,255,0.8); margin: 10px 0 0 0; font-size: 0.9em;">
-                Powered by Gemini | TraceVerde | SMOLTRACE | HuggingFace | OpenTelemetry | MCP
+                Powered by Gemini | Gradio | TraceVerde | SMOLTRACE | HuggingFace | OpenTelemetry | MCP
             </p>
         </div>
         """)
@@ -113,6 +113,54 @@ def create_gradio_ui():
 
         *AI-powered MCP server providing 10 tools, 3 resources, and 3 prompts for agent evaluation analysis.*
         """)
+
+        # TraceMind Ecosystem (Accordion)
+        with gr.Accordion("🌐 The TraceMind Ecosystem", open=False):
+            gr.Markdown("""
+            ### Complete Agent Evaluation Platform
+
+            TraceMind MCP Server is part of a 4-project ecosystem for comprehensive agent evaluation:
+
+            #### 🔭 TraceVerde (genai_otel_instrument)
+            **Foundation: OpenTelemetry Instrumentation**
+            - Zero-code OTEL instrumentation for LLM frameworks
+            - Automatically captures every LLM call, tool usage, and agent step
+            - Works with LiteLLM, Transformers, LangChain, CrewAI, and more
+            - [GitHub](https://github.com/Mandark-droid/genai_otel_instrument) | [PyPI](https://pypi.org/project/genai-otel-instrument)
+
+            #### 📊 SMOLTRACE
+            **Foundation: Evaluation Engine**
+            - Lightweight agent evaluation engine with built-in tracing
+            - Generates structured datasets (leaderboard, results, traces, metrics)
+            - Supports both API models (via LiteLLM) and local models (via Transformers)
+            - [GitHub](https://github.com/Mandark-droid/SMOLTRACE) | [PyPI](https://pypi.org/project/smoltrace/)
+
+            #### 🤖 TraceMind MCP Server (This Project)
+            **Track 1: Building MCP (Enterprise)**
+            - Provides AI-powered MCP tools for analyzing evaluation data
+            - Uses Google Gemini 2.5 Pro for intelligent insights
+            - 10 tools + 3 resources + 3 prompts
+            - [HF Space](https://huggingface.co/spaces/MCP-1st-Birthday/TraceMind-mcp-server)
+
+            #### 🧠 TraceMind-AI
+            **Track 2: MCP in Action (Enterprise)**
+            - Interactive UI that consumes MCP tools from this server
+            - Leaderboard visualization with AI-powered insights
+            - Autonomous agent chat powered by MCP tools
+            - Multi-cloud job submission (HuggingFace Jobs + Modal)
+            - [HF Space](https://huggingface.co/spaces/MCP-1st-Birthday/TraceMind)
+
+            ### The Flow
+            ```
+            TraceVerde → SMOLTRACE → Datasets
+                                        ↓
+                          TraceMind MCP Server (AI Tools)
+                                        ↓
+                            TraceMind-AI (UI + Agent)
+            ```
+
+            **Built for**: MCP's 1st Birthday Hackathon (Nov 14-30, 2025)
+            """)
 
         # About Section (Accordion)
         with gr.Accordion("📖 About This MCP Server", open=False):
