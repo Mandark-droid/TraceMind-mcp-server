@@ -1769,7 +1769,7 @@ dataset.push_to_hub("your-username/smoltrace-{domain.lower()}-tasks")
 async def push_dataset_to_hub(
     dataset_json: str,
     repo_name: str,
-    hf_token: str,
+    hf_token: str = None,
     private: bool = False,
     prompt_template: str = None
 ) -> str:
@@ -1784,12 +1784,13 @@ async def push_dataset_to_hub(
     - Format: {username}/smoltrace-{domain}-tasks or {username}/smoltrace-{domain}-tasks-v{version}
     - Examples: "mycompany/smoltrace-finance-tasks", "alice/smoltrace-healthcare-tasks-v2"
 
-    **Security**: Requires valid HuggingFace token with write permissions.
+    **Security**: Requires valid HuggingFace token with write permissions. If not provided,
+    will use HF_TOKEN from environment variables or Settings.
 
     Args:
         dataset_json (str): JSON string containing the tasks array (from generate_synthetic_dataset output, use the "tasks" field)
         repo_name (str): HuggingFace repository name following SMOLTRACE naming: {username}/smoltrace-{domain}-tasks
-        hf_token (str): HuggingFace API token with write permissions (get from https://huggingface.co/settings/tokens)
+        hf_token (str): HuggingFace API token with write permissions (optional - uses HF_TOKEN env var if not provided)
         private (bool): Whether to create a private dataset. Default: False (public)
         prompt_template (str): Optional YAML prompt template to include in dataset card (from generate_prompt_template)
 
@@ -1797,7 +1798,17 @@ async def push_dataset_to_hub(
         str: JSON response with upload status, dataset URL, and next steps
     """
     try:
+        import os
         from huggingface_hub import HfApi
+
+        # Use provided token or fallback to environment variable
+        token = hf_token or os.environ.get("HF_TOKEN")
+        if not token:
+            return json.dumps({
+                "error": "HuggingFace token required",
+                "message": "Please provide hf_token parameter or set HF_TOKEN environment variable in Settings",
+                "get_token": "https://huggingface.co/settings/tokens"
+            }, indent=2)
 
         # Validate repo name follows SMOLTRACE convention
         if "smoltrace-" not in repo_name and "-tasks" not in repo_name:
@@ -1843,7 +1854,7 @@ async def push_dataset_to_hub(
         # Push to hub
         dataset.push_to_hub(
             repo_name,
-            token=hf_token,
+            token=token,
             private=private
         )
 
@@ -1931,7 +1942,7 @@ Part of the MCP's 1st Birthday Hackathon project.
                     path_in_repo="README.md",
                     repo_id=repo_name,
                     repo_type="dataset",
-                    token=hf_token
+                    token=token
                 )
 
                 print(f"[PUSH_DATASET_TO_HUB] Prompt template added to dataset card successfully")
