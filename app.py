@@ -1545,44 +1545,6 @@ def create_gradio_ui():
         """)
 
         with gr.Tab("⚙️ Settings"):
-            gr.Markdown("""
-                # ⚙️ API Configuration
-
-                ## Overview
-
-                TraceMind MCP Server operates with **pre-configured API keys** from HuggingFace Spaces Secrets, enabling immediate use without additional setup.
-
-                **For Judges & Advanced Users**: Override default credentials with your own API keys to:
-                - Avoid rate limits during extensive testing
-                - Track usage independently
-                - Ensure uninterrupted evaluation access
-
-                ---
-
-                ## Configuration Options
-
-                **Default Mode** (Recommended)
-                - Uses HuggingFace Spaces Secrets
-                - No configuration required
-                - Suitable for most evaluations
-
-                **Custom Mode** (Optional)
-                - Session-scoped overrides
-                - Your keys take precedence
-                - Active until browser refresh
-
-                ---
-
-                ## Security
-
-                - ✅ **Session-only storage** - Keys never persisted to disk
-                - ✅ **No API exposure** - Configuration endpoint disabled (`api_name=False`)
-                - ✅ **HTTPS encrypted** - All communications secured
-                - ✅ **Privacy-first** - Key status displayed without revealing characters
-
-                ---
-                """)
-
             # Show current key status (fully masked for security)
             current_gemini = os.environ.get("GEMINI_API_KEY", "")
             current_hf = os.environ.get("HF_TOKEN", "")
@@ -1590,46 +1552,31 @@ def create_gradio_ui():
             gemini_display = "✅ Configured" if current_gemini else "❌ Not configured"
             hf_display = "✅ Configured" if current_hf else "❌ Not configured"
 
-            status_badge = "✅ **Active Configuration**: HuggingFace Spaces Secrets" if (current_gemini and current_hf) else "⚠️ **Status**: Incomplete configuration"
-
             gr.Markdown(f"""
-                ## Current Status
+### API Configuration
 
-                | Component | Status |
-                |-----------|--------|
-                | **Google Gemini API** | {gemini_display} |
-                | **HuggingFace Token** | {hf_display} |
+**Current Status**: Gemini API: {gemini_display} • HuggingFace Token: {hf_display}
 
-                {status_badge}
-
-                ---
-                """)
-
-            gr.Markdown("""
-                ## Custom API Keys
-
-                **Optional**: Override default credentials with your own keys for this session.
+The server is pre-configured with API keys from HuggingFace Spaces Secrets. Optionally override with your own keys for this session.
                 """)
 
             with gr.Row():
-                with gr.Column():
-                    gemini_api_key_input = gr.Textbox(
-                            label="Google Gemini API Key (Optional)",
-                            placeholder="Leave empty for defaults or enter: AIza...",
-                            type="password",
-                            value="",
-                            info="Free tier: 1,500 requests/day • Get key: https://ai.google.dev/"
-                        )
-
-            with gr.Row():
-                with gr.Column():
-                    hf_token_input = gr.Textbox(
-                        label="HuggingFace Token (Optional)",
-                        placeholder="Leave empty for defaults or enter: hf_...",
-                        type="password",
-                        value="",
-                        info="Permissions: Read (view) or Write (full access) • Get token: https://huggingface.co/settings/tokens"
-                    )
+                gemini_api_key_input = gr.Textbox(
+                    label="Google Gemini API Key (Optional)",
+                    placeholder="AIza...",
+                    type="password",
+                    value="",
+                    info="Free tier: 1,500 requests/day",
+                    scale=1
+                )
+                hf_token_input = gr.Textbox(
+                    label="HuggingFace Token (Optional)",
+                    placeholder="hf_...",
+                    type="password",
+                    value="",
+                    info="Read or Write permissions",
+                    scale=1
+                )
 
             with gr.Row():
                 save_keys_btn = gr.Button("💾 Apply Configuration", variant="primary", size="lg")
@@ -1637,31 +1584,13 @@ def create_gradio_ui():
 
             settings_status = gr.Markdown("")
 
-            gr.Markdown("""
-                ---
+            with gr.Accordion("📖 Setup Instructions", open=False):
+                gr.Markdown("""
+**Google Gemini API**: Get your key at [Google AI Studio](https://ai.google.dev/) (Free: 1,500 requests/day)
 
-                ## API Key Setup Guide
+**HuggingFace Token**: Create at [HuggingFace Settings](https://huggingface.co/settings/tokens) (Read or Write permissions)
 
-                <details>
-                <summary><b>📖 Click to expand setup instructions</b></summary>
-
-                ### Google Gemini API
-
-                1. Visit [Google AI Studio](https://ai.google.dev/)
-                2. Generate API key (starts with `AIza`)
-                3. **Free tier**: 1,500 requests/day
-
-                ### HuggingFace Token
-
-                1. Visit [HuggingFace Tokens](https://huggingface.co/settings/tokens)
-                2. Create token with **Read** (view datasets) or **Write** (upload datasets) permissions
-                3. Token starts with `hf_`
-
-                </details>
-
-                ---
-
-                **Note**: Custom keys are session-scoped and cleared on page refresh.
+**Security**: Custom keys are session-only and cleared on page refresh.
                 """)
 
             # Event handlers for Settings tab
