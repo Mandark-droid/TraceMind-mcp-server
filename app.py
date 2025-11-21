@@ -88,10 +88,28 @@ def create_gradio_ui():
 
     # Note: In Gradio 6, theme is passed to launch(), not Blocks()
     with gr.Blocks(title="TraceMind MCP Server") as demo:
-        gr.Markdown("""
-        # 🤖 TraceMind MCP Server
+        # Top Banner (matching TraceMind-AI style)
+        gr.HTML("""
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    padding: 25px;
+                    border-radius: 10px;
+                    margin-bottom: 20px;
+                    text-align: center;
+                    box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <h1 style="color: white !important; margin: 0; font-size: 2.5em; font-weight: bold;">
+                🤖 TraceMind MCP Server
+            </h1>
+            <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 1.2em;">
+                AI-Powered Analysis for Agent Evaluation
+            </p>
+            <p style="color: rgba(255,255,255,0.8); margin: 10px 0 0 0; font-size: 0.9em;">
+                Powered by Google Gemini 2.5 Pro • HuggingFace Datasets • OpenTelemetry
+            </p>
+        </div>
+        """)
 
-        **AI-Powered Analysis for Agent Evaluation Data**
+        gr.Markdown("""
+        **Track 1 Submission**: Building MCP (Enterprise)
 
         This server provides **10 MCP Tools + 3 MCP Resources + 3 MCP Prompts**:
 
@@ -1580,10 +1598,10 @@ if __name__ == "__main__":
         # Create Gradio interface
         demo = create_gradio_ui()
 
-        # Theme configuration (Ocean-inspired) - Gradio 6 requires theme in launch()
+        # Theme configuration (matching TraceMind-AI) - Gradio 6 requires theme in launch()
         theme = gr.themes.Base(
-            primary_hue="blue",
-            secondary_hue="cyan",
+            primary_hue="indigo",
+            secondary_hue="purple",
             neutral_hue="slate",
             font=gr.themes.GoogleFont("Inter"),
         ).set(
