@@ -111,40 +111,70 @@ def create_gradio_ui():
         gr.Markdown("""
         **Track 1 Submission**: Building MCP (Enterprise)
 
-        This server provides **10 MCP Tools + 3 MCP Resources + 3 MCP Prompts**:
-
-        ### MCP Tools (AI-Powered & Optimized)
-        - 📊 **Analyze Leaderboard**: Get AI-powered insights from evaluation results
-        - 🐛 **Debug Trace**: Understand what happened in a specific test with AI debugging
-        - 💰 **Estimate Cost**: Predict evaluation costs before running with AI recommendations
-        - ⚖️ **Compare Runs**: Compare two evaluation runs with AI-powered analysis
-        - 🏆 **Get Top Performers**: Get top N models from leaderboard (optimized for quick queries)
-        - 📈 **Get Leaderboard Summary**: Get high-level leaderboard statistics (optimized for overview)
-        - 📦 **Get Dataset**: Load any HuggingFace dataset as JSON for flexible analysis
-        - 🧪 **Generate Synthetic Dataset**: Create domain-specific test datasets for SMOLTRACE
-        - 📝 **Generate Prompt Template**: Create customized smolagents prompt templates for your domain
-        - 📤 **Push to Hub**: Upload generated datasets to HuggingFace Hub
-
-        ### MCP Resources (Data Access)
-        - 📊 **leaderboard://{repo}**: Raw leaderboard data
-        - 🔍 **trace://{trace_id}/{repo}**: Raw trace data
-        - 💰 **cost://model/{model_name}**: Model pricing data
-
-        ### MCP Prompts (Templates)
-        - 📝 **analysis_prompt**: Templates for analysis requests
-        - 🐛 **debug_prompt**: Templates for debugging traces
-        - ⚡ **optimization_prompt**: Templates for optimization recommendations
-
-        All powered by **Google Gemini 2.5 Pro**.
-
-        ## MCP Connection
-
-        **HuggingFace Space**: `https://huggingface.co/spaces/MCP-1st-Birthday/TraceMind-mcp-server`
-
-        **MCP Endpoint (SSE - Recommended)**: `https://mcp-1st-birthday-tracemind-mcp-server.hf.space/gradio_api/mcp/sse`
-
-        **MCP Endpoint (Streamable HTTP)**: `https://mcp-1st-birthday-tracemind-mcp-server.hf.space/gradio_api/mcp/`
+        *AI-powered MCP server providing 10 tools, 3 resources, and 3 prompts for agent evaluation analysis.*
         """)
+
+        # About Section (Accordion)
+        with gr.Accordion("📖 About This MCP Server", open=False):
+            gr.Markdown("""
+            ### What is This?
+
+            TraceMind MCP Server provides intelligent analysis tools for agent evaluation data through the Model Context Protocol (MCP).
+
+            **Powered by**: Google Gemini 2.5 Pro
+
+            ### MCP Tools (10 Available)
+            - 📊 **Analyze Leaderboard** - AI-powered insights from evaluation results
+            - 🐛 **Debug Trace** - Understand agent execution with AI debugging
+            - 💰 **Estimate Cost** - Predict evaluation costs with AI recommendations
+            - ⚖️ **Compare Runs** - Compare evaluation runs with AI analysis
+            - 🔍 **Analyze Results** - Deep dive into test results
+            - 🏆 **Get Top Performers** - Quick leaderboard queries (optimized)
+            - 📈 **Get Leaderboard Summary** - High-level statistics (optimized)
+            - 📦 **Get Dataset** - Load any HuggingFace dataset as JSON
+            - 🧪 **Generate Synthetic Dataset** - Create domain-specific test datasets
+            - 📝 **Generate Prompt Template** - Create customized smolagents prompts
+            - 📤 **Push to Hub** - Upload datasets to HuggingFace Hub
+
+            ### MCP Resources (3 Available)
+            - 📊 `leaderboard://{repo}` - Raw leaderboard data
+            - 🔍 `trace://{trace_id}/{repo}` - Raw trace data
+            - 💰 `cost://model/{model_name}` - Model pricing data
+
+            ### MCP Prompts (3 Templates)
+            - 📝 `analysis_prompt` - Analysis request templates
+            - 🐛 `debug_prompt` - Debugging trace templates
+            - ⚡ `optimization_prompt` - Optimization recommendation templates
+            """)
+
+        # MCP Connection Info (Accordion)
+        with gr.Accordion("🔌 MCP Connection Details", open=False):
+            gr.Markdown("""
+            ### Connect Your MCP Client
+
+            **HuggingFace Space**:
+            ```
+            https://huggingface.co/spaces/MCP-1st-Birthday/TraceMind-mcp-server
+            ```
+
+            **MCP Endpoint (SSE - Recommended)**:
+            ```
+            https://mcp-1st-birthday-tracemind-mcp-server.hf.space/gradio_api/mcp/sse
+            ```
+
+            **MCP Endpoint (Streamable HTTP)**:
+            ```
+            https://mcp-1st-birthday-tracemind-mcp-server.hf.space/gradio_api/mcp/
+            ```
+
+            ### Supported Clients
+            - Claude Desktop
+            - Continue.dev
+            - Cline
+            - Any MCP-compatible client
+            """)
+
+        gr.Markdown("---")
         with gr.Tabs():
             # Tab 1: Analyze Leaderboard
             with gr.Tab("📊 Analyze Leaderboard"):
