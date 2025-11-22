@@ -20,10 +20,10 @@ RUN apt-get update && apt-get install -y \
 # Copy requirements first (for better caching)
 COPY requirements.txt .
 
-# Fresh install of Gradio 6 as recommended by Gradio team
+# Fresh install of Gradio 6 stable (released Nov 21, 2025)
 # Install in a single command to avoid conflicts
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir "gradio[mcp,oauth]==6.0.0.dev4" && \
+    pip install --no-cache-dir "gradio[mcp,oauth]==6.0.0" && \
     pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
