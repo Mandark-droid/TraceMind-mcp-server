@@ -1162,7 +1162,10 @@ def create_gradio_ui():
                 gr.Markdown("""
                 ## MCP Tool Specifications
 
-                ### 1. analyze_leaderboard
+                Click on each tool to expand its documentation.
+
+                <details>
+                <summary><h3>📊 1. analyze_leaderboard</h3></summary>
 
                 **Description**: Generate AI-powered insights from evaluation leaderboard data
 
@@ -1174,9 +1177,10 @@ def create_gradio_ui():
 
                 **Returns**: Markdown-formatted analysis with top performers, trends, and recommendations
 
-                ---
+                </details>
 
-                ### 2. debug_trace
+                <details>
+                <summary><h3>🐛 2. debug_trace</h3></summary>
 
                 **Description**: Answer questions about specific agent execution traces
 
@@ -1187,9 +1191,10 @@ def create_gradio_ui():
 
                 **Returns**: Markdown-formatted debug analysis with step-by-step breakdown
 
-                ---
+                </details>
 
-                ### 3. estimate_cost
+                <details>
+                <summary><h3>💰 3. estimate_cost</h3></summary>
 
                 **Description**: Predict evaluation costs before running
 
@@ -1201,9 +1206,10 @@ def create_gradio_ui():
 
                 **Returns**: Markdown-formatted cost estimate with breakdown and optimization tips
 
-                ---
+                </details>
 
-                ### 4. compare_runs
+                <details>
+                <summary><h3>⚖️ 4. compare_runs</h3></summary>
 
                 **Description**: Compare two evaluation runs with AI-powered analysis
 
@@ -1221,9 +1227,10 @@ def create_gradio_ui():
                 - `performance`: Speed and accuracy trade-off analysis
                 - `eco_friendly`: Environmental impact and carbon footprint comparison
 
-                ---
+                </details>
 
-                ### 5. get_top_performers
+                <details>
+                <summary><h3>🏆 5. get_top_performers</h3></summary>
 
                 **Description**: Get top performing models from leaderboard - optimized for quick queries
 
@@ -1267,9 +1274,10 @@ def create_gradio_ui():
                 }
                 ```
 
-                ---
+                </details>
 
-                ### 6. get_leaderboard_summary
+                <details>
+                <summary><h3>📈 6. get_leaderboard_summary</h3></summary>
 
                 **Description**: Get high-level leaderboard summary statistics - optimized for overview queries
 
@@ -1310,9 +1318,10 @@ def create_gradio_ui():
                 }
                 ```
 
-                ---
+                </details>
 
-                ### 7. get_dataset
+                <details>
+                <summary><h3>📦 7. get_dataset</h3></summary>
 
                 **Description**: Load SMOLTRACE datasets from HuggingFace and return as JSON
 
@@ -1337,9 +1346,10 @@ def create_gradio_ui():
                 2. Use `get_top_performers()` for "top N" queries
                 3. Use `get_dataset()` only for non-leaderboard datasets or when you need specific run IDs
 
-                ---
+                </details>
 
-                ### 8. generate_synthetic_dataset
+                <details>
+                <summary><h3>🧪 8. generate_synthetic_dataset</h3></summary>
 
                 **Description**: Generate domain-specific synthetic test datasets for SMOLTRACE evaluations using AI
 
@@ -1374,9 +1384,10 @@ def create_gradio_ui():
                 - Generate benchmarks for internal workflows
                 - Rapid prototyping of evaluation scenarios
 
-                ---
+                </details>
 
-                ### 9. push_dataset_to_hub
+                <details>
+                <summary><h3>📤 9. push_dataset_to_hub</h3></summary>
 
                 **Description**: Push a generated synthetic dataset to HuggingFace Hub
 
@@ -1385,7 +1396,7 @@ def create_gradio_ui():
                 - `repo_name` (str, required): HuggingFace repository name following SMOLTRACE naming convention
                   - Format: `{username}/smoltrace-{domain}-tasks` or `{username}/smoltrace-{domain}-tasks-v{version}`
                   - Examples: `kshitij/smoltrace-finance-tasks`, `kshitij/smoltrace-healthcare-tasks-v2`
-                - `hf_token` (str, required): HuggingFace API token with write permissions
+                - `hf_token` (str, optional): HuggingFace API token with write permissions (uses saved token from Settings if not provided)
                 - `private` (bool): Whether to create a private repository (default: False)
 
                 **Returns**: JSON object with upload status, repository URL, and dataset information
@@ -1426,9 +1437,10 @@ def create_gradio_ui():
                 )
                 ```
 
-                ---
+                </details>
 
-                ### 10. analyze_results
+                <details>
+                <summary><h3>📋 10. analyze_results</h3></summary>
 
                 **Description**: Analyzes detailed test results and provides optimization recommendations
 
@@ -1461,9 +1473,10 @@ def create_gradio_ui():
                 )
                 ```
 
-                ---
+                </details>
 
-                ### 11. generate_prompt_template
+                <details>
+                <summary><h3>📝 11. generate_prompt_template</h3></summary>
 
                 **Description**: Generate customized smolagents prompt template for a specific domain and tool set
 
@@ -1495,6 +1508,8 @@ def create_gradio_ui():
                     agent_type="tool"
                 )
                 ```
+
+                </details>
 
                 ---
 
