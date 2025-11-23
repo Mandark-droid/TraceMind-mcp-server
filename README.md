@@ -227,7 +227,8 @@ To avoid rate limits during evaluation:
 
 ### 📹 Demo Materials
 
-- **🎥 Demo Video**: [Coming Soon - Link to video]
+- **🎬 Quick Demo (5 min)**: [Watch on Loom](https://www.loom.com/share/d4d0003f06fa4327b46ba5c081bdf835)
+- **📺 Full Demo (20 min)**: [Watch on Loom](https://www.loom.com/share/de559bb0aef749559c79117b7f951250)
 - **📢 Social Post**: [Coming Soon - Link to announcement]
 
 ---
@@ -250,10 +251,6 @@ To avoid rate limits during evaluation:
   - MCP protocol implementation
   - Gemini integration details
   - Deployment guide
-- [UI_GUIDE.md](UI_GUIDE.md) - Gradio interface walkthrough
-  - Tab-by-tab explanations
-  - Testing workflows
-  - Configuration options
 
 ---
 
