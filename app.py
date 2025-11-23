@@ -172,7 +172,9 @@ def create_gradio_ui():
 
             **Powered by**: Google Gemini 2.5 Pro
 
-            ### MCP Tools (10 Available)
+            **🎬 [Quick Demo (5 min)](https://www.loom.com/share/d4d0003f06fa4327b46ba5c081bdf835)** | **📺 [Full Demo (20 min)](https://www.loom.com/share/de559bb0aef749559c79117b7f951250)**
+
+            ### MCP Tools (11 Available)
             - 📊 **Analyze Leaderboard** - AI-powered insights from evaluation results
             - 🐛 **Debug Trace** - Understand agent execution with AI debugging
             - 💰 **Estimate Cost** - Predict evaluation costs with AI recommendations
