@@ -1519,6 +1519,10 @@ def create_gradio_ui():
 
                 **HuggingFace Space**: `https://huggingface.co/spaces/MCP-1st-Birthday/TraceMind-mcp-server`
 
+                **🎬 Quick Demo (5 min)**: [Watch on Loom](https://www.loom.com/share/d4d0003f06fa4327b46ba5c081bdf835)
+
+                **📺 Full Demo (20 min)**: [Watch on Loom](https://www.loom.com/share/de559bb0aef749559c79117b7f951250)
+
                 **MCP Endpoint (SSE - Recommended)**: `https://mcp-1st-birthday-tracemind-mcp-server.hf.space/gradio_api/mcp/sse`
 
                 **MCP Endpoint (Streamable HTTP)**: `https://mcp-1st-birthday-tracemind-mcp-server.hf.space/gradio_api/mcp/`
