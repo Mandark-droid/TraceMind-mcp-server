@@ -22,7 +22,7 @@ Architecture:
          → MCP Endpoint (Gradio SSE)
          → TraceMind MCP Server (this file)
          → Tools (mcp_tools.py)
-         → Google Gemini 2.5 Pro API
+         → Google Gemini 2.5 Flash API
 
 For Track 1: Building MCP Servers - Enterprise Category
 https://huggingface.co/MCP-1st-Birthday
@@ -139,7 +139,7 @@ def create_gradio_ui():
             #### 🤖 TraceMind MCP Server (This Project)
             **Track 1: Building MCP (Enterprise)**
             - Provides AI-powered MCP tools for analyzing evaluation data
-            - Uses Google Gemini 2.5 Pro for intelligent insights
+            - Uses Google Gemini 2.5 Flash for intelligent insights
             - 11 tools + 3 resources + 3 prompts
             - [HF Space](https://huggingface.co/spaces/MCP-1st-Birthday/TraceMind-mcp-server)
 
@@ -170,7 +170,7 @@ def create_gradio_ui():
 
             TraceMind MCP Server provides intelligent analysis tools for agent evaluation data through the Model Context Protocol (MCP).
 
-            **Powered by**: Google Gemini 2.5 Pro
+            **Powered by**: Google Gemini 2.5 Flash
 
             **🎬 [Quick Demo (5 min)](https://www.loom.com/share/d4d0003f06fa4327b46ba5c081bdf835)** | **📺 [Full Demo (20 min)](https://www.loom.com/share/de559bb0aef749559c79117b7f951250)**
 
@@ -265,7 +265,7 @@ def create_gradio_ui():
                     Analyze agent evaluation leaderboard and generate AI-powered insights.
 
                     This tool loads agent evaluation data from HuggingFace datasets and uses
-                    Google Gemini 2.5 Pro to provide intelligent analysis of top performers,
+                    Google Gemini 2.5 Flash to provide intelligent analysis of top performers,
                     trends, cost/performance trade-offs, and actionable recommendations.
 
                     Args:
@@ -327,7 +327,7 @@ def create_gradio_ui():
                     Debug a specific agent execution trace using OpenTelemetry data.
 
                     This tool analyzes OpenTelemetry trace data from agent executions and uses
-                    Google Gemini 2.5 Pro to answer specific questions about the execution flow,
+                    Google Gemini 2.5 Flash to answer specific questions about the execution flow,
                     identify bottlenecks, explain agent behavior, and provide debugging insights.
 
                     Args:
@@ -409,7 +409,7 @@ def create_gradio_ui():
                     Estimate the cost, duration, and CO2 emissions of running agent evaluations.
 
                     This tool predicts costs before running evaluations by calculating LLM API costs,
-                    HuggingFace Jobs compute costs, and CO2 emissions. Uses Google Gemini 2.5 Pro
+                    HuggingFace Jobs compute costs, and CO2 emissions. Uses Google Gemini 2.5 Flash
                     to provide detailed cost breakdown and optimization recommendations.
 
                     Args:
@@ -486,7 +486,7 @@ def create_gradio_ui():
                     Compare two evaluation runs and generate AI-powered comparative analysis.
 
                     This tool fetches data for two evaluation runs from the leaderboard and uses
-                    Google Gemini 2.5 Pro to provide intelligent comparison across multiple dimensions:
+                    Google Gemini 2.5 Flash to provide intelligent comparison across multiple dimensions:
                     success rate, cost efficiency, speed, environmental impact, and use case recommendations.
 
                     Args:
@@ -1683,7 +1683,7 @@ if __name__ == "__main__":
     logger.info("  ✓ 7 AI-Powered Tools (Leaderboard + Trace + Cost + Dataset)")
     logger.info("  ✓ 3 Real-Time Resources (leaderboard, trace, cost data)")
     logger.info("  ✓ 3 Prompt Templates (analysis, debug, optimization)")
-    logger.info("  ✓ Google Gemini 2.5 Pro - Intelligent Analysis")
+    logger.info("  ✓ Google Gemini 2.5 Flash - Intelligent Analysis")
     logger.info("  ✓ HuggingFace Dataset Integration")
     logger.info("  ✓ SMOLTRACE Format Support")
     logger.info("  ✓ Synthetic Dataset Generation")

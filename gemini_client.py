@@ -1,7 +1,7 @@
 """
 Gemini Client for TraceMind MCP Server
 
-Handles all interactions with Google Gemini 2.5 Pro API
+Handles all interactions with Google Gemini 2.5 Flash API
 """
 
 import os

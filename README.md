@@ -7,7 +7,7 @@ sdk: docker
 app_port: 7860
 pinned: true
 license: agpl-3.0
-short_description: MCP server for agent evaluation with Gemini 2.5 Pro
+short_description: MCP server for agent evaluation with Gemini 2.5 Flash
 tags:
   - building-mcp-track-enterprise
   - mcp
@@ -76,7 +76,7 @@ This MCP server is part of a complete agent evaluation ecosystem built on two fo
 2. **debug prompts**: Templates for debugging scenarios
 3. **optimization prompts**: Templates for optimization goals
 
-All analysis is powered by **Google Gemini 2.5 Pro** for intelligent, context-aware insights.
+All analysis is powered by **Google Gemini 2.5 Flash** for intelligent, context-aware insights.
 
 ## 🔗 Quick Links
 
@@ -115,7 +115,7 @@ All analysis is powered by **Google Gemini 2.5 Pro** for intelligent, context-aw
 - ✅ **Production-Ready**: Deployable to HuggingFace Spaces with SSE transport
 - ✅ **Testing Interface**: Beautiful Gradio UI for testing all components
 - ✅ **Enterprise Focus**: Cost optimization, debugging, decision support, and custom dataset generation
-- ✅ **Google Gemini Powered**: Leverages Gemini 2.5 Pro for intelligent analysis
+- ✅ **Google Gemini Powered**: Leverages Gemini 2.5 Flash for intelligent analysis
 - ✅ **17 Total Components**: 11 Tools + 3 Resources + 3 Prompts
 
 ### 🛠️ Eleven Production-Ready Tools
@@ -254,7 +254,7 @@ Loads SMOLTRACE datasets from HuggingFace and returns raw data as JSON:
 
 #### 8. generate_synthetic_dataset
 
-Generates domain-specific synthetic test datasets for SMOLTRACE evaluations using Google Gemini 2.5 Pro:
+Generates domain-specific synthetic test datasets for SMOLTRACE evaluations using Google Gemini 2.5 Flash:
 - AI-powered task generation tailored to your domain
 - Custom tool specifications
 - Configurable difficulty distribution (balanced, easy_only, medium_only, hard_only, progressive)
@@ -561,7 +561,7 @@ A: The MCP endpoint is publicly accessible. However, the tools may require Huggi
 ### Available MCP Components
 
 **Tools** (9):
-1. **analyze_leaderboard**: AI-powered leaderboard analysis with Gemini 2.5 Pro
+1. **analyze_leaderboard**: AI-powered leaderboard analysis with Gemini 2.5 Flash
 2. **debug_trace**: Trace debugging with AI insights
 3. **estimate_cost**: Cost estimation with optimization recommendations
 4. **compare_runs**: Compare two evaluation runs with AI-powered analysis
@@ -588,7 +588,7 @@ See full API documentation in the Gradio interface under "📖 API Documentation
 ```
 TraceMind-mcp-server/
 ├── app.py                      # Gradio UI + MCP server (mcp_server=True)
-├── gemini_client.py            # Google Gemini 2.5 Pro integration
+├── gemini_client.py            # Google Gemini 2.5 Flash integration
 ├── mcp_tools.py                # 7 tool implementations
 ├── requirements.txt            # Python dependencies
 ├── .env.example                # Environment variable template
@@ -598,7 +598,7 @@ TraceMind-mcp-server/
 
 **Key Technologies**:
 - **Gradio 6 with MCP support**: `gradio[mcp]` provides native MCP server capabilities
-- **Google Gemini 2.5 Pro**: Latest AI model for intelligent analysis
+- **Google Gemini 2.5 Flash**: Latest AI model for intelligent analysis
 - **HuggingFace Datasets**: Data source for evaluations
 - **Streamable HTTP Transport**: Modern streaming protocol for MCP communication (recommended)
 - **SSE Transport**: Server-Sent Events for legacy MCP compatibility (deprecated)
@@ -699,7 +699,7 @@ Note: This requires actual trace data from an evaluation run. For testing purpos
 - Integrates with enterprise data infrastructure (HuggingFace datasets)
 
 **Technology Stack**
-- **AI Analysis**: Google Gemini 2.5 Pro for all intelligent insights
+- **AI Analysis**: Google Gemini 2.5 Flash for all intelligent insights
 - **MCP Framework**: Gradio 6 with native MCP support
 - **Data Source**: HuggingFace Datasets
 - **Transport**: Streamable HTTP (recommended) and SSE (deprecated)
@@ -727,7 +727,7 @@ Main Gradio application with:
 - API documentation
 
 ### gemini_client.py
-Google Gemini 2.5 Pro client that:
+Google Gemini 2.5 Flash client that:
 - Handles API authentication
 - Provides specialized analysis methods for different data types
 - Formats prompts for optimal results
@@ -842,7 +842,7 @@ gemini_client = GeminiClient(model_name="gemini-2.5-flash-latest")
 Special thanks to the sponsors of **MCP's 1st Birthday Hackathon** (November 14-30, 2025):
 
 - **🤗 HuggingFace** - Hosting platform and dataset infrastructure
-- **🧠 Google Gemini** - AI analysis powered by Gemini 2.5 Pro API
+- **🧠 Google Gemini** - AI analysis powered by Gemini 2.5 Flash API
 - **⚡ Modal** - Serverless infrastructure partner
 - **🏢 Anthropic** - MCP protocol creators
 - **🎨 Gradio** - Native MCP framework support
@@ -901,7 +901,7 @@ For issues or questions:
   - 3 data resources (leaderboard, trace, cost data)
   - 3 prompt templates (analysis, debug, optimization)
 - Gradio native MCP support with decorators (`@gr.mcp.*`)
-- Google Gemini 2.5 Pro integration for all AI analysis
+- Google Gemini 2.5 Flash integration for all AI analysis
 - Live HuggingFace dataset integration
 - **Performance Optimizations**:
   - get_top_performers: 90% token reduction vs full leaderboard

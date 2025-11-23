@@ -27,7 +27,7 @@ docstrings, and type hints.
     debug_prompt - Standardized templates for debugging scenarios
     optimization_prompt - Standardized templates for optimization goals
 
-All AI analysis powered by Google Gemini 2.5 Pro.
+All AI analysis powered by Google Gemini 2.5 Flash.
 Track 1: Building MCP Servers - Enterprise Category
 """
 
@@ -61,7 +61,7 @@ async def analyze_leaderboard(
     DO NOT use the leaderboard:// resource for questions - use this tool instead!
     The resource only returns raw JSON data without any analysis.
 
-    This tool uses Google Gemini 2.5 Pro to provide intelligent analysis of
+    This tool uses Google Gemini 2.5 Flash to provide intelligent analysis of
     agent evaluation results, including top performers, trends, cost/performance
     trade-offs, and actionable recommendations.
 
@@ -166,7 +166,7 @@ async def debug_trace(
     DO NOT use the trace:// resource for questions - use this tool instead!
     The resource only returns raw OTEL JSON data without any analysis.
 
-    This tool uses Google Gemini 2.5 Pro to analyze OpenTelemetry trace data and
+    This tool uses Google Gemini 2.5 Flash to analyze OpenTelemetry trace data and
     provide intelligent debugging insights, step-by-step breakdowns, and answers
     to specific questions about execution flow.
 
@@ -267,7 +267,7 @@ async def estimate_cost(
     DO NOT use the cost:// resource for estimates - use this tool instead!
     The resource only returns raw pricing tables without calculations.
 
-    This tool uses Google Gemini 2.5 Pro to calculate LLM API costs, HuggingFace
+    This tool uses Google Gemini 2.5 Flash to calculate LLM API costs, HuggingFace
     Jobs compute costs, CO2 emissions, and provide intelligent cost breakdowns with
     optimization recommendations.
 
@@ -490,7 +490,7 @@ async def compare_runs(
     Compare two evaluation runs and generate AI-powered comparative analysis.
 
     This tool fetches data for two evaluation runs from the leaderboard and uses
-    Google Gemini 2.5 Pro to provide intelligent comparison across multiple dimensions:
+    Google Gemini 2.5 Flash to provide intelligent comparison across multiple dimensions:
     success rate, cost efficiency, speed, environmental impact, and use case recommendations.
 
     Args:
@@ -693,7 +693,7 @@ async def analyze_results(
     - Analyze which types of tasks work well vs poorly
 
     This tool analyzes individual test case results (not aggregate leaderboard data)
-    and uses Google Gemini 2.5 Pro to provide actionable optimization recommendations.
+    and uses Google Gemini 2.5 Flash to provide actionable optimization recommendations.
 
     Args:
         results_repo (str): HuggingFace dataset repository containing results (e.g., "username/smoltrace-results-gpt4-20251114")
@@ -1462,7 +1462,7 @@ async def generate_synthetic_dataset(
     """
     Generate domain-specific synthetic test datasets for SMOLTRACE evaluations using AI.
 
-    This tool uses Google Gemini 2.5 Pro to create realistic, domain-specific evaluation
+    This tool uses Google Gemini 2.5 Flash to create realistic, domain-specific evaluation
     tasks that follow the SMOLTRACE task dataset format. Perfect for creating custom
     benchmarks when standard datasets don't fit your use case.
 
@@ -2158,7 +2158,7 @@ Start your response with the YAML content immediately."""
                 "agent_type": agent_type,
                 "template_name": template_name,
                 "base_template_url": template_url,
-                "customization_method": "Google Gemini 2.5 Pro"
+                "customization_method": "Google Gemini 2.5 Flash"
             },
             "prompt_template": customized_template,
             "usage_instructions": f"""
