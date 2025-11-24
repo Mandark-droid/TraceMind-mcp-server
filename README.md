@@ -307,7 +307,7 @@ Visit http://localhost:7860 to test the tools via Gradio UI.
 **Powered by**: Google Gemini 2.5 Flash
 **Built with**: Gradio (native MCP support)
 
-**Sponsors**: HuggingFace • Google Gemini • Modal • Anthropic • Gradio • ElevenLabs • SambaNova • Blaxel
+**Sponsors**: HuggingFace • Google Gemini • Modal • Anthropic • Gradio • OpenAI • Nebius • Hyperbolic • ElevenLabs • SambaNova • Blaxel
 
 ---
 
