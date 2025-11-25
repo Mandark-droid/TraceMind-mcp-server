@@ -55,6 +55,14 @@ tags:
 - **🎬 Quick Demo (5 min)**: [Watch on Loom](https://www.loom.com/share/d4d0003f06fa4327b46ba5c081bdf835)
 - **📺 Full Demo (20 min)**: [Watch on Loom](https://www.loom.com/share/de559bb0aef749559c79117b7f951250)
 
+### Social Media
+
+Read the announcement and join the discussion:
+- **[Twitter/X post link]** : [View on X](https://x.com/Mandark12921244/status/1993279134156607594?s=20)
+- **[LinkedIn post link]**: [View on LinkedIn](https://www.linkedin.com/posts/kshitij-thakkar-2061b924_mcp-modelcontextprotocol-aiagents-activity-7399052013524647936-wgkA)
+- **[HuggingFace Discord announcement link]**: [Read on discord](https://discord.com/channels/879548962464493619/1439001549492719726/1442838638307180656)
+
+
 **MCP Endpoints**:
 - SSE (Recommended): `https://mcp-1st-birthday-tracemind-mcp-server.hf.space/gradio_api/mcp/sse`
 - Streamable HTTP: `https://mcp-1st-birthday-tracemind-mcp-server.hf.space/gradio_api/mcp/`
@@ -227,9 +235,11 @@ To avoid rate limits during evaluation:
 
 ### 📹 Demo Materials
 
-- **🎬 Quick Demo (5 min)**: [Watch on Loom](https://www.loom.com/share/d4d0003f06fa4327b46ba5c081bdf835)
-- **📺 Full Demo (20 min)**: [Watch on Loom](https://www.loom.com/share/de559bb0aef749559c79117b7f951250)
-- **📢 Social Post**: [Coming Soon - Link to announcement]
+1. **🎬 Quick Demo (5 min)**: [Watch on Loom](https://www.loom.com/share/d4d0003f06fa4327b46ba5c081bdf835)
+2. **📺 Full Demo (20 min)**: [Watch on Loom](https://www.loom.com/share/de559bb0aef749559c79117b7f951250)
+- **[Twitter/X post link]** : [View on X](https://x.com/Mandark12921244/status/1993279134156607594?s=20)
+- **[LinkedIn post link]**: [View on LinkedIn](https://www.linkedin.com/posts/kshitij-thakkar-2061b924_mcp-modelcontextprotocol-aiagents-activity-7399052013524647936-wgkA)
+- **[HuggingFace Discord announcement link]**: [Read on discord](https://discord.com/channels/879548962464493619/1439001549492719726/1442838638307180656)
 
 ---
 
