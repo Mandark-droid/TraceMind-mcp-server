@@ -585,7 +585,97 @@ def create_gradio_ui():
                     outputs=[results_output]
                 )
 
-            # Tab 6: Get Dataset
+            # Tab 6: Get Top Performers
+            with gr.Tab("🏆 Get Top Performers"):
+                gr.Markdown("""
+                ## Get Top Performing Models (Token-Optimized)
+
+                Quickly retrieve top N models from the leaderboard without loading all runs.
+                **90% token reduction** compared to loading the full leaderboard dataset.
+                """)
+
+                with gr.Row():
+                    with gr.Column():
+                        top_perf_repo = gr.Textbox(
+                            label="Leaderboard Repository",
+                            value="kshitijthakkar/smoltrace-leaderboard",
+                            placeholder="username/dataset-name"
+                        )
+                        top_perf_metric = gr.Dropdown(
+                            label="Ranking Metric",
+                            choices=["success_rate", "total_cost_usd", "avg_duration_ms", "co2_emissions_g"],
+                            value="success_rate",
+                            info="Metric to rank models by"
+                        )
+                        top_perf_n = gr.Slider(
+                            label="Top N Models",
+                            minimum=1,
+                            maximum=20,
+                            value=5,
+                            step=1,
+                            info="Number of top models to return"
+                        )
+                        top_perf_button = gr.Button("🏆 Get Top Performers", variant="primary")
+
+                    with gr.Column():
+                        top_perf_output = gr.JSON(label="Top Performers (JSON)")
+
+                async def run_get_top_performers(repo, metric, top_n):
+                    """Get top performing models from leaderboard."""
+                    try:
+                        import json
+                        result = await get_top_performers(
+                            leaderboard_repo=repo,
+                            metric=metric,
+                            top_n=int(top_n)
+                        )
+                        return json.loads(result)
+                    except Exception as e:
+                        return {"error": str(e)}
+
+                top_perf_button.click(
+                    fn=run_get_top_performers,
+                    inputs=[top_perf_repo, top_perf_metric, top_perf_n],
+                    outputs=[top_perf_output]
+                )
+
+            # Tab 7: Get Leaderboard Summary
+            with gr.Tab("📈 Get Leaderboard Summary"):
+                gr.Markdown("""
+                ## Get Leaderboard Overview Statistics (Token-Optimized)
+
+                Get high-level summary statistics without loading individual runs.
+                **99% token reduction** compared to loading the full leaderboard dataset.
+                """)
+
+                with gr.Row():
+                    with gr.Column():
+                        summary_repo = gr.Textbox(
+                            label="Leaderboard Repository",
+                            value="kshitijthakkar/smoltrace-leaderboard",
+                            placeholder="username/dataset-name"
+                        )
+                        summary_button = gr.Button("📈 Get Summary", variant="primary")
+
+                    with gr.Column():
+                        summary_output = gr.JSON(label="Leaderboard Summary (JSON)")
+
+                async def run_get_leaderboard_summary(repo):
+                    """Get leaderboard summary statistics."""
+                    try:
+                        import json
+                        result = await get_leaderboard_summary(leaderboard_repo=repo)
+                        return json.loads(result)
+                    except Exception as e:
+                        return {"error": str(e)}
+
+                summary_button.click(
+                    fn=run_get_leaderboard_summary,
+                    inputs=[summary_repo],
+                    outputs=[summary_output]
+                )
+
+            # Tab 8: Get Dataset
             with gr.Tab("📦 Get Dataset"):
                 gr.Markdown("""
                 ## Load SMOLTRACE Datasets as JSON
