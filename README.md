@@ -58,6 +58,7 @@ tags:
 ### Social Media
 
 Read the announcement and join the discussion:
+- **📝 [Blog Post]**: [Building TraceMind Ecosystem](https://huggingface.co/blog/kshitijthakkar/tracemind-ecosystem) - Complete technical deep-dive into the TraceVerse ecosystem
 - **[Twitter/X post link]** : [View on X](https://x.com/Mandark12921244/status/1993279134156607594?s=20)
 - **[LinkedIn post link]**: [View on LinkedIn](https://www.linkedin.com/posts/kshitij-thakkar-2061b924_mcp-modelcontextprotocol-aiagents-activity-7399052013524647936-wgkA)
 - **[HuggingFace Discord announcement link]**: [Read on discord](https://discord.com/channels/879548962464493619/1439001549492719726/1442838638307180656)
