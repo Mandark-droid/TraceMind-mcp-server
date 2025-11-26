@@ -3,8 +3,8 @@ title: TraceMind MCP Server
 emoji: 🤖
 colorFrom: blue
 colorTo: purple
-sdk: gradio
-sdk_version: 6.0.0
+sdk: docker
+app_port: 7860
 pinned: true
 license: agpl-3.0
 short_description: MCP server for agent evaluation with Gemini 2.5 Flash
